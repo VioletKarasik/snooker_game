@@ -1,38 +1,42 @@
 class Ball {
-  constructor(x, y, diameter, color, isCueBall = false) {
-    this.diameter = diameter;
-    this.radius = diameter / 2;
-    this.color = color;
-    this.isCueBall = isCueBall;
+  constructor(x, y, color, label = "ball") {
+    this.r = ballDiameter / 2;
 
-    this.body = Bodies.circle(x, y, this.radius, {
-      restitution: 0.9,
-      friction: 0.02,
+    // Создаем физическое тело
+    this.body = Matter.Bodies.circle(x, y, this.r, {
+      restitution: 0.8,
+      friction: 0.01,
       frictionAir: 0.01,
-      label: isCueBall ? 'cueBall' : 'ball'
+      label: label,
+      isStatic: false
     });
+
+    this.color = color;
+
     World.add(world, this.body);
   }
 
-  show() {
-    let pos = this.body.position;
-    let angle = this.body.angle;
+  draw() {
+    const pos = this.body.position;
 
     push();
-    translate(pos.x, pos.y);
-    rotate(angle);
     noStroke();
     fill(this.color);
-    ellipse(0, 0, this.diameter);
+    ellipse(pos.x, pos.y, ballDiameter);
     pop();
   }
 
+  // Проверка, попал ли мяч в лузу
   isInPocket(pockets) {
-    let pos = this.body.position;
-    for (let p of pockets) {
-      let d = dist(pos.x, pos.y, p.x, p.y);
-      if (d < POCKET_DIAMETER / 2) return true;
-    }
-    return false;
+    const pos = this.body.position;
+    return pockets.some(p => {
+      const d = dist(pos.x, pos.y, p.x, p.y);
+      return d < pocketDiameter / 2;
+    });
+  }
+
+  // Удаление шара из физического мира
+  remove() {
+    World.remove(world, this.body);
   }
 }
