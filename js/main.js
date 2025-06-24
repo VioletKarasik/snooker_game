@@ -1,83 +1,109 @@
-let engine, world;
-let table;
-let balls = [];
-let cue;
-let pockets = [];
+// Matter.js переменные
+let Engine = Matter.Engine,
+    World = Matter.World,
+    Bodies = Matter.Bodies,
+    Body = Matter.Body,
+    Events = Matter.Events;
 
-const TABLE_LENGTH = 720; // пиксели (пример)
-const TABLE_WIDTH = 360;
-const BALL_DIAMETER = TABLE_WIDTH / 36;
-const POCKET_DIAMETER = BALL_DIAMETER * 1.5;
+let engine;
+let world;
 
+// Размеры
+let canvasWidth = 1000;
+let tableLength = canvasWidth * 0.9;
+let tableWidth = tableLength / 2;
+let ballDiameter = tableWidth / 36;
+let pocketDiameter = ballDiameter * 1.5;
+
+// Массивы шаров
+let redBalls = [];
+let colorBalls = [];
+let cueBall = null;
+
+// Загрузка
 function setup() {
-  createCanvas(TABLE_LENGTH + 100, TABLE_WIDTH + 100);
-  engine = Matter.Engine.create();
+  createCanvas(canvasWidth, canvasWidth * 0.65);
+
+  // Matter.js engine
+  engine = Engine.create();
   world = engine.world;
-  angleMode(DEGREES);
+  world.gravity.y = 0; // Отключаем гравитацию
 
-  table = new Table(TABLE_LENGTH, TABLE_WIDTH);
+  // Стол
+  setupTable();
 
-  pockets = [
-    createVector((width - TABLE_LENGTH)/2, (height - TABLE_WIDTH)/2), // верх левый
-    createVector(width/2, (height - TABLE_WIDTH)/2),                  // верх центр
-    createVector((width + TABLE_LENGTH)/2, (height - TABLE_WIDTH)/2), // верх правый
-    createVector((width - TABLE_LENGTH)/2, (height + TABLE_WIDTH)/2), // низ левый
-    createVector(width/2, (height + TABLE_WIDTH)/2),                  // низ центр
-    createVector((width + TABLE_LENGTH)/2, (height + TABLE_WIDTH)/2)  // низ правый
-  ];
+  // Создаем режим по умолчанию
+  setStartingPosition();
 
-  // Создаем белый шар в зоне "D"
-  let dRadius = TABLE_WIDTH / 4;
-  let cueX = (width - TABLE_LENGTH) / 2 + dRadius / 2;
-  let cueY = height / 2;
-  balls.push(new Ball(cueX, cueY, BALL_DIAMETER, color(255), true));
-
-  cue = new Cue();
-
-  Matter.Engine.run(engine);
+  // Слушаем столкновения
+  setupCollisionEvents();
 }
 
 function draw() {
-  background(0, 100, 20);
+  background(30, 120, 30); // Цвет фона = цвет сукна
+  Engine.update(engine);
 
-  table.show();
+  drawTable();
 
-  // Рисуем лузы
-  noStroke();
-  fill(0);
-  for (let p of pockets) {
-    ellipse(p.x, p.y, POCKET_DIAMETER);
-  }
+  // Отрисовка всех шаров
+  for (let b of redBalls) b.draw();
+  for (let b of colorBalls) b.draw();
+  if (cueBall) cueBall.draw();
 
-  // Рисуем шары
-  for (let ball of balls) {
-    ball.show();
+  // Проверка попаданий в лузу
+  checkPockets();
+}
+function setStartingPosition() {
+  redBalls = [];
+  colorBalls = [];
 
-    // Проверяем если шар в луже (простая проверка)
+  // Пример: создаём 1 красный мяч
+  let x = table.x + table.w * 0.6;
+  let y = table.y + table.h / 2;
+  redBalls.push(new Ball(x, y, 'red', 'red'));
+
+  // Цветной шар — жёлтый
+  let y2 = y + 50;
+  colorBalls.push(new Ball(x + 50, y2, 'yellow', 'yellow'));
+}
+
+function checkPockets() {
+  // Красные мячи
+  redBalls = redBalls.filter(ball => {
     if (ball.isInPocket(pockets)) {
-      // Если красный — удаляем
-      if (!ball.isCueBall) {
-        let idx = balls.indexOf(ball);
-        if (idx > -1) balls.splice(idx, 1);
-      } else {
-        // Если белый — возвращаем в зону D
-        let dRadius = TABLE_WIDTH / 4;
-        let cueX = (width - TABLE_LENGTH) / 2 + dRadius / 2;
-        let cueY = height / 2;
-        Body.setPosition(ball.body, { x: cueX, y: cueY });
-        Body.setVelocity(ball.body, { x: 0, y: 0 });
-      }
+      ball.remove();
+      return false;
+    }
+    return true;
+  });
+
+  // Цветные: возвращаем обратно, если попали
+  for (let ball of colorBalls) {
+    if (ball.isInPocket(pockets)) {
+      Body.setPosition(ball.body, ball.originalPosition || { x: 100, y: 100 });
+      Body.setVelocity(ball.body, { x: 0, y: 0 });
     }
   }
 
-  cue.update();
-  cue.show();
+  // Cue ball
+  if (cueBall && cueBall.isInPocket(pockets)) {
+    cueBall.remove();
+    cueBall = null;
+    // Позже: позволим игроку снова ввести cue ball
+  }
 }
 
-function keyPressed() {
-  if (key === ' ') {
-    cue.power = cue.maxPower; // устанавливаем силу удара
-    cue.hit();
-  }
-  // TODO: Обработка 1,2,3 режимов размещения шаров
+function setupCollisionEvents() {
+  Events.on(engine, 'collisionStart', event => {
+    for (let pair of event.pairs) {
+      let labels = [pair.bodyA.label, pair.bodyB.label];
+      if (labels.includes('cue') && labels.includes('red')) {
+        console.log('Cue hit red!');
+      } else if (labels.includes('cue') && labels.includes('yellow')) {
+        console.log('Cue hit colour!');
+      } else if (labels.includes('cue') && labels.includes('cushion')) {
+        console.log('Cue hit cushion!');
+      }
+    }
+  });
 }
