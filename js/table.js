@@ -1,56 +1,69 @@
-class Table {
-  constructor(length, width) {
-    this.length = length;
-    this.width = width;
+let table;
+let pockets = [];
 
-    // Позиция стола в центре холста
-    this.x = width / 2;
-    this.y = height / 2;
+function setupTable() {
+  table = {
+    x: canvasWidth / 2 - tableLength / 2,
+    y: canvasHeight / 2 - tableWidth / 2,
+    w: tableLength,
+    h: tableWidth
+  };
 
-    // Создаём бортики (cushions)
-    this.cushions = [];
+  createPockets();
+  createCushions(); // создадим позже
+}
 
-    let cushionThickness = 30;
+// Функция для отрисовки стола
+function drawTable() {
+  // Стол
+  push();
+  fill(34, 139, 34); // зелёный
+  noStroke();
+  rect(table.x, table.y, table.w, table.h, 20);
+  pop();
 
-    // Прямоугольники бортиков вокруг стола
-    // Верхний бортик
-    this.cushions.push(this.createCushion((width / 2), (height - this.width) / 2 - cushionThickness/2, this.length, cushionThickness));
-    // Нижний бортик
-    this.cushions.push(this.createCushion((width / 2), (height + this.width) / 2 + cushionThickness/2, this.length, cushionThickness));
-    // Левый бортик
-    this.cushions.push(this.createCushion((width - this.length)/2 - cushionThickness/2, height/2, cushionThickness, this.width));
-    // Правый бортик
-    this.cushions.push(this.createCushion((width + this.length)/2 + cushionThickness/2, height/2, cushionThickness, this.width));
+  // D-зона
+  drawDZone();
+
+  // Лузы
+  drawPockets();
+}
+
+function createPockets() {
+  pockets = [];
+
+  let { x, y, w, h } = table;
+
+  // 6 луз: по углам и в центре длинных сторон
+  pockets.push({ x: x, y: y });                         // top-left
+  pockets.push({ x: x + w / 2, y: y });                 // top-center
+  pockets.push({ x: x + w, y: y });                     // top-right
+  pockets.push({ x: x, y: y + h });                     // bottom-left
+  pockets.push({ x: x + w / 2, y: y + h });             // bottom-center
+  pockets.push({ x: x + w, y: y + h });                 // bottom-right
+}
+
+function drawPockets() {
+  push();
+  fill(0); // чёрные лузы
+  noStroke();
+  for (let p of pockets) {
+    ellipse(p.x, p.y, pocketDiameter);
   }
+  pop();
+}
 
-  createCushion(x, y, w, h) {
-    let body = Bodies.rectangle(x, y, w, h, { isStatic: true, restitution: 0.8, friction: 0.05, label: "cushion" });
-    World.add(world, body);
-    return body;
-  }
+function drawDZone() {
+  const { x, y, h } = table;
+  const dRadius = tableWidth / 6;
 
-  show() {
-    // Заливка стола
-    fill(10, 92, 39);
-    rectMode(CENTER);
-    rect(width / 2, height / 2, this.length, this.width);
-
-    // Бортики
-    fill(60, 30, 10);
-    noStroke();
-    for (let c of this.cushions) {
-      push();
-      translate(c.position.x, c.position.y);
-      rotate(c.angle);
-      rect(0, 0, c.bounds.max.x - c.bounds.min.x, c.bounds.max.y - c.bounds.min.y);
-      pop();
-    }
-
-    // Рисуем "D" (полукруг для подачи)
-    noFill();
-    stroke(255);
-    strokeWeight(2);
-    let dRadius = this.width / 4;
-    arc(width / 2 - this.length / 2 + dRadius, height / 2, dRadius * 2, dRadius * 2, -90, 90);
-  }
+  // D-полукруг
+  push();
+  stroke(255);
+  noFill();
+  strokeWeight(1.5);
+  arc(x + dRadius, y + h / 2, dRadius * 2, dRadius * 2, -HALF_PI, HALF_PI);
+  // Линия от нижнего до верхнего края D
+  line(x + dRadius, y, x + dRadius, y + h);
+  pop();
 }
