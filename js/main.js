@@ -1,139 +1,139 @@
-// Matter.js переменные
-let Engine = Matter.Engine,
-    World = Matter.World,
-    Bodies = Matter.Bodies,
-    Body = Matter.Body,
-    Events = Matter.Events;
+// // Matter.js переменные
+// let Engine = Matter.Engine,
+//     World = Matter.World,
+//     Bodies = Matter.Bodies,
+//     Body = Matter.Body,
+//     Events = Matter.Events;
 
-let engine;
-let world;
+// let engine;
+// let world;
 
-// Размеры
-let canvasWidth = 1000;
-let tableLength = canvasWidth * 0.9;
-let tableWidth = tableLength / 2;
-let ballDiameter = tableWidth / 36;
-let pocketDiameter = ballDiameter * 1.5;
+// // Размеры
+// let canvasWidth = 1000;
+// let tableLength = canvasWidth * 0.9;
+// let tableWidth = tableLength / 2;
+// let ballDiameter = tableWidth / 36;
+// let pocketDiameter = ballDiameter * 1.5;
 
-// Массивы шаров
-let redBalls = [];
-let colorBalls = [];
-let cueBall = null;
-let canPlaceCueBall = true;
-let dRadius;
-let dCenter;
-
-
-// Загрузка
-function setup() {
-  createCanvas(canvasWidth, canvasWidth * 0.65);
-
-  // Matter.js engine
-  engine = Engine.create();
-  world = engine.world;
-  world.gravity.y = 0; // Отключаем гравитацию
-
-  // Стол
-  setupTable();
-  let dRadius = tableWidth * 0.15; // Радиус полукруга "D"
-  let dCenter = {
-    x: table.x + dRadius + pocketDiameter * 2,
-    y: table.y + table.h / 2
-  };
+// // Массивы шаров
+// let redBalls = [];
+// let colorBalls = [];
+// let cueBall = null;
+// let canPlaceCueBall = true;
+// let dRadius;
+// let dCenter;
 
 
-  // Создаем режим по умолчанию
-  setStartingPosition();
+// // Загрузка
+// function setup() {
+//   createCanvas(canvasWidth, canvasWidth * 0.65);
 
-  // Слушаем столкновения
-  setupCollisionEvents();
-}
+//   // Matter.js engine
+//   engine = Engine.create();
+//   world = engine.world;
+//   world.gravity.y = 0; // Отключаем гравитацию
 
-function draw() {
-  background(30, 120, 30); // Цвет фона = цвет сукна
-  Engine.update(engine);
-
-  drawTable();
-  // Полукруг "D"
-  noFill();
-  stroke(255);
-  strokeWeight(1.5);
-  arc(dCenter.x, dCenter.y, dRadius * 2, dRadius * 2, -HALF_PI, HALF_PI);
+//   // Стол
+//   setupTable();
+//   let dRadius = tableWidth * 0.15; // Радиус полукруга "D"
+//   let dCenter = {
+//     x: table.x + dRadius + pocketDiameter * 2,
+//     y: table.y + table.h / 2
+//   };
 
 
-  // Отрисовка всех шаров
-  for (let b of redBalls) b.draw();
-  for (let b of colorBalls) b.draw();
-  if (cueBall) cueBall.draw();
+//   // Создаем режим по умолчанию
+//   setStartingPosition();
 
-  // Проверка попаданий в лузу
-  checkPockets();
-}
-function setStartingPosition() {
-  redBalls = [];
-  colorBalls = [];
+//   // Слушаем столкновения
+//   setupCollisionEvents();
+// }
 
-  // Пример: создаём 1 красный мяч
-  let x = table.x + table.w * 0.6;
-  let y = table.y + table.h / 2;
-  redBalls.push(new Ball(x, y, 'red', 'red'));
+// function draw() {
+//   background(30, 120, 30); // Цвет фона = цвет сукна
+//   Engine.update(engine);
 
-  // Цветной шар — жёлтый
-  let y2 = y + 50;
-  colorBalls.push(new Ball(x + 50, y2, 'yellow', 'yellow'));
-}
+//   drawTable();
+//   // Полукруг "D"
+//   noFill();
+//   stroke(255);
+//   strokeWeight(1.5);
+//   arc(dCenter.x, dCenter.y, dRadius * 2, dRadius * 2, -HALF_PI, HALF_PI);
 
-function checkPockets() {
-  // Красные мячи
-  redBalls = redBalls.filter(ball => {
-    if (ball.isInPocket(pockets)) {
-      ball.remove();
-      return false;
-    }
-    return true;
-  });
 
-  // Цветные: возвращаем обратно, если попали
-  for (let ball of colorBalls) {
-    if (ball.isInPocket(pockets)) {
-      Body.setPosition(ball.body, ball.originalPosition || { x: 100, y: 100 });
-      Body.setVelocity(ball.body, { x: 0, y: 0 });
-    }
-  }
+//   // Отрисовка всех шаров
+//   for (let b of redBalls) b.draw();
+//   for (let b of colorBalls) b.draw();
+//   if (cueBall) cueBall.draw();
 
-  // Cue ball
-  if (cueBall && cueBall.isInPocket(pockets)) {
-    cueBall.remove();
-    cueBall = null;
-    canPlaceCueBall = true; // разрешаем вставку нового
-  }
+//   // Проверка попаданий в лузу
+//   checkPockets();
+// }
+// function setStartingPosition() {
+//   redBalls = [];
+//   colorBalls = [];
 
-}
+//   // Пример: создаём 1 красный мяч
+//   let x = table.x + table.w * 0.6;
+//   let y = table.y + table.h / 2;
+//   redBalls.push(new Ball(x, y, 'red', 'red'));
 
-function setupCollisionEvents() {
-  Events.on(engine, 'collisionStart', event => {
-    for (let pair of event.pairs) {
-      let labels = [pair.bodyA.label, pair.bodyB.label];
-      if (labels.includes('cue') && labels.includes('red')) {
-        console.log('Cue hit red!');
-      } else if (labels.includes('cue') && labels.includes('yellow')) {
-        console.log('Cue hit colour!');
-      } else if (labels.includes('cue') && labels.includes('cushion')) {
-        console.log('Cue hit cushion!');
-      }
-    }
-  });
-}
-function mousePressed() {
-  if (canPlaceCueBall) {
-    if (isInDZone(mouseX, mouseY)) {
-      cueBall = new Ball(mouseX, mouseY, 'white', 'cue');
-      canPlaceCueBall = false;
-    }
-  }
-}
-function isInDZone(x, y) {
-  let dx = x - dCenter.x;
-  let dy = y - dCenter.y;
-  return dx * dx + dy * dy <= dRadius * dRadius;
-}
+//   // Цветной шар — жёлтый
+//   let y2 = y + 50;
+//   colorBalls.push(new Ball(x + 50, y2, 'yellow', 'yellow'));
+// }
+
+// function checkPockets() {
+//   // Красные мячи
+//   redBalls = redBalls.filter(ball => {
+//     if (ball.isInPocket(pockets)) {
+//       ball.remove();
+//       return false;
+//     }
+//     return true;
+//   });
+
+//   // Цветные: возвращаем обратно, если попали
+//   for (let ball of colorBalls) {
+//     if (ball.isInPocket(pockets)) {
+//       Body.setPosition(ball.body, ball.originalPosition || { x: 100, y: 100 });
+//       Body.setVelocity(ball.body, { x: 0, y: 0 });
+//     }
+//   }
+
+//   // Cue ball
+//   if (cueBall && cueBall.isInPocket(pockets)) {
+//     cueBall.remove();
+//     cueBall = null;
+//     canPlaceCueBall = true; // разрешаем вставку нового
+//   }
+
+// }
+
+// function setupCollisionEvents() {
+//   Events.on(engine, 'collisionStart', event => {
+//     for (let pair of event.pairs) {
+//       let labels = [pair.bodyA.label, pair.bodyB.label];
+//       if (labels.includes('cue') && labels.includes('red')) {
+//         console.log('Cue hit red!');
+//       } else if (labels.includes('cue') && labels.includes('yellow')) {
+//         console.log('Cue hit colour!');
+//       } else if (labels.includes('cue') && labels.includes('cushion')) {
+//         console.log('Cue hit cushion!');
+//       }
+//     }
+//   });
+// }
+// function mousePressed() {
+//   if (canPlaceCueBall) {
+//     if (isInDZone(mouseX, mouseY)) {
+//       cueBall = new Ball(mouseX, mouseY, 'white', 'cue');
+//       canPlaceCueBall = false;
+//     }
+//   }
+// }
+// function isInDZone(x, y) {
+//   let dx = x - dCenter.x;
+//   let dy = y - dCenter.y;
+//   return dx * dx + dy * dy <= dRadius * dRadius;
+// }

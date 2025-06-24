@@ -1,69 +1,50 @@
-let table;
-let pockets = [];
+// table.js
 
-function setupTable() {
-  table = {
-    x: canvasWidth / 2 - tableLength / 2,
-    y: canvasHeight / 2 - tableWidth / 2,
-    w: tableLength,
-    h: tableWidth
-  };
+let tableWidth, tableHeight, tableX, tableY, pocketDiameter;
 
-  createPockets();
-  createCushions(); // создадим позже
+function setupTable(canvasWidth, canvasHeight) {
+  tableWidth = canvasWidth * 0.9;
+  tableHeight = tableWidth / 2;
+
+  tableX = (canvasWidth - tableWidth) / 2;
+  tableY = (canvasHeight - tableHeight) / 2;
+
+  pocketDiameter = tableWidth / 36 * 1.5;
 }
 
-// Функция для отрисовки стола
 function drawTable() {
-  // Стол
-  push();
-  fill(34, 139, 34); // зелёный
+  fill(102, 51, 0);
   noStroke();
-  rect(table.x, table.y, table.w, table.h, 20);
-  pop();
+  rect(tableX - 20, tableY - 20, tableWidth + 40, tableHeight + 40, 20);
 
-  // D-зона
-  drawDZone();
+  fill(20, 100, 20);
+  rect(tableX, tableY, tableWidth, tableHeight, 10);
 
-  // Лузы
-  drawPockets();
-}
-
-function createPockets() {
-  pockets = [];
-
-  let { x, y, w, h } = table;
-
-  // 6 луз: по углам и в центре длинных сторон
-  pockets.push({ x: x, y: y });                         // top-left
-  pockets.push({ x: x + w / 2, y: y });                 // top-center
-  pockets.push({ x: x + w, y: y });                     // top-right
-  pockets.push({ x: x, y: y + h });                     // bottom-left
-  pockets.push({ x: x + w / 2, y: y + h });             // bottom-center
-  pockets.push({ x: x + w, y: y + h });                 // bottom-right
-}
-
-function drawPockets() {
-  push();
-  fill(0); // чёрные лузы
-  noStroke();
+  fill(0);
+  let pockets = getPocketPositions();
   for (let p of pockets) {
     ellipse(p.x, p.y, pocketDiameter);
   }
-  pop();
+
+  stroke(255);
+  strokeWeight(2);
+  line(tableX, tableY + tableHeight / 2, tableX + tableWidth, tableY + tableHeight / 2);
+
+  let dRadius = tableWidth * 0.15;
+  let dCenterX = tableX + dRadius + pocketDiameter * 2;
+  let dCenterY = tableY + tableHeight / 2;
+
+  noFill();
+  arc(dCenterX, dCenterY, dRadius * 2, dRadius * 2, -HALF_PI, HALF_PI);
 }
 
-function drawDZone() {
-  const { x, y, h } = table;
-  const dRadius = tableWidth / 6;
-
-  // D-полукруг
-  push();
-  stroke(255);
-  noFill();
-  strokeWeight(1.5);
-  arc(x + dRadius, y + h / 2, dRadius * 2, dRadius * 2, -HALF_PI, HALF_PI);
-  // Линия от нижнего до верхнего края D
-  line(x + dRadius, y, x + dRadius, y + h);
-  pop();
+function getPocketPositions() {
+  return [
+    { x: tableX, y: tableY },
+    { x: tableX + tableWidth / 2, y: tableY },
+    { x: tableX + tableWidth, y: tableY },
+    { x: tableX, y: tableY + tableHeight },
+    { x: tableX + tableWidth / 2, y: tableY + tableHeight },
+    { x: tableX + tableWidth, y: tableY + tableHeight },
+  ];
 }
