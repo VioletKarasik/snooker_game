@@ -19,6 +19,10 @@ let pocketDiameter = ballDiameter * 1.5;
 let redBalls = [];
 let colorBalls = [];
 let cueBall = null;
+let canPlaceCueBall = true;
+let dRadius;
+let dCenter;
+
 
 // Загрузка
 function setup() {
@@ -31,6 +35,12 @@ function setup() {
 
   // Стол
   setupTable();
+  let dRadius = tableWidth * 0.15; // Радиус полукруга "D"
+  let dCenter = {
+    x: table.x + dRadius + pocketDiameter * 2,
+    y: table.y + table.h / 2
+  };
+
 
   // Создаем режим по умолчанию
   setStartingPosition();
@@ -44,6 +54,12 @@ function draw() {
   Engine.update(engine);
 
   drawTable();
+  // Полукруг "D"
+  noFill();
+  stroke(255);
+  strokeWeight(1.5);
+  arc(dCenter.x, dCenter.y, dRadius * 2, dRadius * 2, -HALF_PI, HALF_PI);
+
 
   // Отрисовка всех шаров
   for (let b of redBalls) b.draw();
@@ -89,8 +105,9 @@ function checkPockets() {
   if (cueBall && cueBall.isInPocket(pockets)) {
     cueBall.remove();
     cueBall = null;
-    // Позже: позволим игроку снова ввести cue ball
+    canPlaceCueBall = true; // разрешаем вставку нового
   }
+
 }
 
 function setupCollisionEvents() {
@@ -106,4 +123,17 @@ function setupCollisionEvents() {
       }
     }
   });
+}
+function mousePressed() {
+  if (canPlaceCueBall) {
+    if (isInDZone(mouseX, mouseY)) {
+      cueBall = new Ball(mouseX, mouseY, 'white', 'cue');
+      canPlaceCueBall = false;
+    }
+  }
+}
+function isInDZone(x, y) {
+  let dx = x - dCenter.x;
+  let dy = y - dCenter.y;
+  return dx * dx + dy * dy <= dRadius * dRadius;
 }
