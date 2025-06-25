@@ -11,9 +11,8 @@ function setupTable(canvasWidth, canvasHeight) {
 
   pocketDiameter = tableWidth / 36 * 1.5;
 }
-
 function drawTable() {
-  // --- Деревянный борт с лёгкой текстурой ---
+  // --- Деревянный борт с лёгкой текстурой + зелёные градиенты ---
   noStroke();
   for (let i = 0; i < 20; i++) {
     let inter = map(i, 0, 19, 0.4, 0.7);
@@ -21,9 +20,16 @@ function drawTable() {
     rect(tableX - 20 - i, tableY - 20 - i, tableWidth + 40 + i * 2, tableHeight + 40 + i * 2, 30);
   }
 
-  // --- Основное поле с двойным градиентом ---
-  drawFieldWithGradient();
-  
+  // Зелёные градиенты на бортах
+  drawGreenBordersGradient();
+
+  // --- Основное поле (заполняем базовым зелёным) ---
+  fill(30, 100, 30);
+  rect(tableX, tableY, tableWidth, tableHeight);
+
+  // --- Градиент затемнения у краёв игрового поля ---
+  drawTableDarkEdgesGradient();
+
   // --- Контур стола ---
   noFill();
   stroke(0, 50);
@@ -37,145 +43,123 @@ function drawTable() {
   drawTableMarkings();
 }
 
-function drawFieldWithGradient() {
-  const borderWidth = 10; // Ширина светлой полосы у бортов
-  const darkEdgeWidth = 40; // Ширина темной полосы по краям
-  
-  // Основной градиент (центр -> края)
-  push();
-  noStroke();
-  
-  // Горизонтальные линии (сверху вниз)
-  for (let y = tableY; y <= tableY + tableHeight; y++) {
-    // Определяем цвет для этой линии
-    let c;
-    
-    // Верхняя светлая полоса (у самого борта)
-    if (y < tableY + borderWidth) {
-      let inter = map(y, tableY, tableY + borderWidth, 0, 1);
-      c = lerpColor(color(60, 140, 60), color(30, 100, 30), inter);
-    } 
-    // Нижняя светлая полоса (у самого борта)
-    else if (y > tableY + tableHeight - borderWidth) {
-      let inter = map(y, tableY + tableHeight - borderWidth, tableY + tableHeight, 0, 1);
-      c = lerpColor(color(60, 140, 60), color(30, 100, 30), inter);
-    }
-    // Центральная часть с темными краями
-    else {
-      // Определяем расстояние до ближайшего вертикального борта (сверху или снизу)
-      let distToTopEdge = y - tableY;
-      let distToBottomEdge = tableY + tableHeight - y;
-      
-      // Определяем расстояние до ближайшего горизонтального борта (слева или справа)
-      // Это будет использовано позже для вертикальных линий
-      
-      // Если близко к верхнему или нижнему краю - темнее
-      if (distToTopEdge < darkEdgeWidth) {
-        let inter = map(distToTopEdge, 0, darkEdgeWidth, 0, 1);
-        c = lerpColor(color(15, 70, 15), color(30, 100, 30), inter);
-      } else if (distToBottomEdge < darkEdgeWidth) {
-        let inter = map(distToBottomEdge, 0, darkEdgeWidth, 0, 1);
-        c = lerpColor(color(15, 70, 15), color(30, 100, 30), inter);
-      } else {
-        c = color(30, 100, 30); // Основной цвет
-      }
-    }
-    
-    stroke(c);
-    line(tableX, y, tableX + tableWidth, y);
-  }
-  
-  // Вертикальные градиенты (лево-право)
-  for (let x = tableX; x <= tableX + tableWidth; x++) {
-    // Левый борт (светлее к краю)
-    if (x < tableX + borderWidth) {
-      let inter = map(x, tableX, tableX + borderWidth, 0, 1);
-      let c = lerpColor(color(60, 140, 60), color(30, 100, 30), inter);
-      stroke(c);
-      line(x, tableY, x, tableY + tableHeight);
-    } 
-    // Правый борт (светлее к краю)
-    else if (x > tableX + tableWidth - borderWidth) {
-      let inter = map(x, tableX + tableWidth - borderWidth, tableX + tableWidth, 0, 1);
-      let c = lerpColor(color(30, 100, 30), color(60, 140, 60), inter);
-      stroke(c);
-      line(x, tableY, x, tableY + tableHeight);
-    }
-    // Центральная часть с темными краями
-    else {
-      // Определяем расстояние до ближайшего горизонтального борта (слева или справа)
-      let distToLeftEdge = x - tableX;
-      let distToRightEdge = tableX + tableWidth - x;
-      
-      // Если близко к левому или правому краю - темнее
-      if (distToLeftEdge < darkEdgeWidth) {
-        let inter = map(distToLeftEdge, 0, darkEdgeWidth, 0, 1);
-        let c = lerpColor(color(15, 70, 15), color(30, 100, 30), inter);
-        stroke(c);
-        line(x, tableY, x, tableY + tableHeight);
-      } else if (distToRightEdge < darkEdgeWidth) {
-        let inter = map(distToRightEdge, 0, darkEdgeWidth, 0, 1);
-        let c = lerpColor(color(15, 70, 15), color(30, 100, 30), inter);
-        stroke(c);
-        line(x, tableY, x, tableY + tableHeight);
-      } else {
-        // Для центральных вертикальных линий используем основной цвет
-        stroke(30, 100, 30);
-        line(x, tableY, x, tableY + tableHeight);
-      }
-    }
-  }
-  
-  pop();
-  
-  // Дополнительная подсветка углов
-  drawCornerHighlights(borderWidth);
-}
+function drawTableDarkEdgesGradient() {
+  let ctx = drawingContext;
+  let darkness = color(15, 50, 15, 100); // тёмный зелёный с прозрачностью
+  let transparent = color(30, 100, 30, 0);
 
-function drawCornerHighlights(size) {
+  // Сколько пикселей тянется затемнение от краёв
+  const fadeSize = 60;
+
   push();
   noStroke();
-  
-  // Углы (делаем их немного светлее)
-  const cornerSize = size * 0.;
-  const cornerAlpha = 60;
-  
-  // Левый верх
-  drawCornerHighlight(tableX, tableY, cornerSize, cornerAlpha);
-  // Правый верх
-  drawCornerHighlight(tableX + tableWidth, tableY, cornerSize, cornerAlpha);
-  // Левый низ
-  drawCornerHighlight(tableX, tableY + tableHeight, cornerSize, cornerAlpha);
-  // Правый низ
-  drawCornerHighlight(tableX + tableWidth, tableY + tableHeight, cornerSize, cornerAlpha);
-  
+
+  // Верхний градиент
+  let topGrad = ctx.createLinearGradient(tableX, tableY, tableX, tableY + fadeSize);
+  topGrad.addColorStop(0, darkness.toString());
+  topGrad.addColorStop(1, transparent.toString());
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(tableX, tableY, tableWidth, fadeSize);
+
+  // Нижний градиент
+  let bottomGrad = ctx.createLinearGradient(tableX, tableY + tableHeight, tableX, tableY + tableHeight - fadeSize);
+  bottomGrad.addColorStop(0, darkness.toString());
+  bottomGrad.addColorStop(1, transparent.toString());
+  ctx.fillStyle = bottomGrad;
+  ctx.fillRect(tableX, tableY + tableHeight - fadeSize, tableWidth, fadeSize);
+
+  // Левый градиент
+  let leftGrad = ctx.createLinearGradient(tableX, tableY, tableX + fadeSize, tableY);
+  leftGrad.addColorStop(0, darkness.toString());
+  leftGrad.addColorStop(1, transparent.toString());
+  ctx.fillStyle = leftGrad;
+  ctx.fillRect(tableX, tableY, fadeSize, tableHeight);
+
+  // Правый градиент
+  let rightGrad = ctx.createLinearGradient(tableX + tableWidth, tableY, tableX + tableWidth - fadeSize, tableY);
+  rightGrad.addColorStop(0, darkness.toString());
+  rightGrad.addColorStop(1, transparent.toString());
+  ctx.fillStyle = rightGrad;
+  ctx.fillRect(tableX + tableWidth - fadeSize, tableY, fadeSize, tableHeight);
+
   pop();
 }
 
-function drawCornerHighlight(x, y, size, alpha) {
-  for (let i = 0; i < size; i++) {
-    let currentAlpha = map(i, 0, size, alpha, 0);
-    fill(200, 255, 200, currentAlpha);
-    ellipse(x, y, size * 2 - i * 2, size * 2 - i * 2);
-  }
+
+function drawGreenBordersGradient() {
+  let mainColor = color(30, 100, 30);
+  let darkColor = color(15, 70, 15);
+  let lightColor = color(60, 140, 60);
+
+  push();
+  noStroke();
+  let ctx = drawingContext;
+
+  const borderWidth = 10;
+  const offset = 10;  // смещение ярких полосок внутрь
+
+  
+  // светлые тонкие полоски — сдвигаем их внутрь бортика на offset пикселей
+
+  // Верхняя светлая полоска
+  let topLightGrad = ctx.createLinearGradient(tableX - 20 + offset, tableY - 20 + offset, tableX - 20 + offset, tableY - 20 + offset + borderWidth);
+  topLightGrad.addColorStop(0, lightColor.toString());
+  topLightGrad.addColorStop(1, mainColor.toString());
+  ctx.fillStyle = topLightGrad;
+  ctx.fillRect(tableX - 20 + offset, tableY - 20 + offset, tableWidth + 40 - 2 * offset, borderWidth);
+
+  // Нижняя светлая полоска
+  let bottomLightGrad = ctx.createLinearGradient(tableX - 20 + offset, tableY + tableHeight + 20 - offset, tableX - 20 + offset, tableY + tableHeight + 20 - offset - borderWidth);
+  bottomLightGrad.addColorStop(0, lightColor.toString());
+  bottomLightGrad.addColorStop(1, mainColor.toString());
+  ctx.fillStyle = bottomLightGrad;
+  ctx.fillRect(tableX - 20 + offset, tableY + tableHeight + 20 - offset - borderWidth, tableWidth + 40 - 2 * offset, borderWidth);
+
+  // Левая светлая полоска
+  let leftLightGrad = ctx.createLinearGradient(tableX - 20 + offset, tableY - 20 + offset, tableX - 20 + offset + borderWidth, tableY - 20 + offset);
+  leftLightGrad.addColorStop(0, lightColor.toString());
+  leftLightGrad.addColorStop(1, mainColor.toString());
+  ctx.fillStyle = leftLightGrad;
+  ctx.fillRect(tableX - 20 + offset, tableY - 20 + offset, borderWidth, tableHeight + 40 - 2 * offset);
+
+  // Правая светлая полоска
+  let rightLightGrad = ctx.createLinearGradient(tableX + tableWidth + 20 - offset, tableY - 20 + offset, tableX + tableWidth + 20 - offset - borderWidth, tableY - 20 + offset);
+  rightLightGrad.addColorStop(0, lightColor.toString());
+  rightLightGrad.addColorStop(1, mainColor.toString());
+  ctx.fillStyle = rightLightGrad;
+  ctx.fillRect(tableX + tableWidth + 20 - offset - borderWidth, tableY - 20 + offset, borderWidth, tableHeight + 40 - 2 * offset);
+
+  pop();
 }
 
 function drawPockets() {
   let pockets = getPocketPositions();
   for (let p of pockets) {
-    // Тень
-    fill(0, 80);
-    noStroke();
-    ellipse(p.x + 2, p.y + 2, pocketDiameter * 1.1);
-    
-    // Сама луза
-    fill(0);
-    ellipse(p.x, p.y, pocketDiameter);
-    
-    // Внутренняя подсветка
-    fill(40, 40, 40, 150);
-    ellipse(p.x, p.y, pocketDiameter * 0.7);
+  let shadowOffsetX = 0;
+  let shadowOffsetY = 0;
+
+  // Определим направление тени по расположению лузы
+  if (p.x < tableX + tableWidth / 2) {
+    shadowOffsetX = 2;
+  } else if (p.x > tableX + tableWidth / 2) {
+    shadowOffsetX = -2;
   }
+
+  if (p.y < tableY + tableHeight / 2) {
+    shadowOffsetY = 2;
+  } else if (p.y > tableY + tableHeight / 2) {
+    shadowOffsetY = -2;
+  }
+
+  // Тень
+  fill(0, 100);
+  ellipse(p.x + shadowOffsetX, p.y + shadowOffsetY, pocketDiameter * 1.05);
+
+  // Лунка
+  fill(0);
+  ellipse(p.x, p.y, pocketDiameter);
+}
+
 }
 
 function drawTableMarkings() {
@@ -190,7 +174,7 @@ function drawTableMarkings() {
   arc(dCenterX, dCenterY, dRadius * 2, dRadius * 2, HALF_PI, -HALF_PI);
 
   // Линия "D"
-  let dLineX = dCenterX + dRadius;
+  let dLineX = dCenterX + dRadius - 108;
   line(dLineX, tableY, dLineX, tableY + tableHeight);
 }
 

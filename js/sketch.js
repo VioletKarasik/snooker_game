@@ -1,4 +1,3 @@
-// sketch.js
 let canvas;
 let score = 0;
 let tableTopOffset = 120;
@@ -11,7 +10,6 @@ function setup() {
   ellipseMode(CENTER);
 
   setupPhysics();
-
   setupGame();
 }
 
@@ -29,7 +27,6 @@ function draw() {
   drawBalls();
   drawCue();
 
-  // Проверка попадания в лузы
   for (let i = balls.length - 1; i >= 0; i--) {
     if (checkBallInPocket(balls[i])) {
       Matter.World.remove(engine.world, balls[i].body);
@@ -43,4 +40,17 @@ function draw() {
 function updateScoreDisplay() {
   const scoreEl = document.getElementById("scoreDisplay");
   if (scoreEl) scoreEl.textContent = score;
+}
+
+function keyPressed() {
+  if (key === '1') {
+    clearAllBalls();
+    setupBalls(tableX, tableY, tableWidth, tableHeight);
+  } else if (key === '2') {
+    clearAllBalls();
+    setupRandomRedBallsOnly();
+  } else if (key === '3') {
+    clearAllBalls();
+    setupRandomAllBalls();
+  }
 }

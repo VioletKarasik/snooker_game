@@ -1,8 +1,5 @@
-// balls.js
-
-let balls = []; // все шары вместе с битком
+let balls = [];
 let ballDiameter;
-
 const COLORS = {
   cue: 'white',
   red: 'red',
@@ -14,142 +11,189 @@ const COLORS = {
   black: 'black'
 };
 
-// Класс шара с физикой Matter.js
 class Ball {
   constructor(x, y, diameter, color) {
     this.diameter = diameter;
     this.color = color;
+
+    this.originalX = x;
+    this.originalY = y;
 
     this.body = Matter.Bodies.circle(x, y, diameter / 2, {
       restitution: 0.9,
       friction: 0.05,
       label: 'ball'
     });
+
     Matter.World.add(engine.world, this.body);
   }
 
+  resetPosition() {
+    Matter.Body.setPosition(this.body, { x: this.originalX, y: this.originalY });
+    Matter.Body.setVelocity(this.body, { x: 0, y: 0 });
+    Matter.Body.setAngularVelocity(this.body, 0);
+    Matter.Body.setAngle(this.body, 0);
+  }
+
   show() {
-  const pos = this.body.position;
-  const r = this.diameter / 2;
+    const pos = this.body.position;
+    const r = this.diameter / 2;
 
-  push();
-  translate(pos.x, pos.y);
-  noStroke();
+    push();
+    translate(pos.x, pos.y);
+    noStroke();
+    fill(this.color);
+    ellipse(0, 0, this.diameter);
 
-  // Основа шара — основной цвет
-  fill(this.color);
-  ellipse(0, 0, this.diameter);
+    fill(255, 255, 255, 90);
+    ellipse(-r * 0.4, -r * 0.4, this.diameter * 0.35);
 
-  // Светлый блик
-  let highlightColor = color(255, 255, 255, 90); // Белый полупрозрачный
-  let bX = -r * 0.4;
-  let bY = -r * 0.4;
-  let bSize = this.diameter * 0.35;
-
-  fill(highlightColor);
-  ellipse(bX, bY, bSize);
-
-  // Легкая тень внизу
-  let shadowColor = color(0, 0, 0, 30);
-  fill(shadowColor);
-  ellipse(0, r * 0.3, bSize * 0.8);
-
-  pop();
+    fill(0, 0, 0, 30);
+    ellipse(0, r * 0.3, this.diameter * 0.28);
+    pop();
+  }
 }
 
+function clearAllBalls() {
+  for (let ball of balls) {
+    Matter.World.remove(engine.world, ball.body);
+  }
+  balls = [];
 }
 
-// Функция установки всех шаров на стол
 function setupBalls(tableX, tableY, tableWidth, tableHeight) {
   ballDiameter = tableWidth / 36;
-  balls = [];
+  clearAllBalls();
 
-  // 1. Биток (cue ball) - внутри "D" слева
-  let cueX = tableX + (tableWidth * 0.15) + (ballDiameter * 1.5);
-  let cueY = tableY + tableHeight / 2;
+  const cueX = tableX + tableWidth * 0.15 + ballDiameter * 1.5;
+  const cueY = tableY + tableHeight / 2;
   balls.push(new Ball(cueX, cueY, ballDiameter, COLORS.cue));
 
-  // 2. Красные шары — треугольник справа
   const rackX = tableX + tableWidth * 0.75;
   const rackY = tableY + tableHeight / 2 - ((Math.sqrt(3) / 2) * ballDiameter * 2);
   setupRedBalls(rackX, rackY);
 
-  // 3. Цветные шары на своих позициях
   setupColoredBalls(tableX, tableY, tableWidth, tableHeight);
 }
 
-// Рисуем треугольник из 15 красных шаров
 function setupRedBalls(rackX, rackY) {
   const rows = 5;
   const spacingY = ballDiameter;
   const spacingX = (Math.sqrt(3) / 2) * ballDiameter;
-  const horizontalOffset = -50;
-  const verticalOffset = 50; // Добавляем смещение по вертикали
+  const hOffset = -50;
+  const vOffset = 50;
 
   for (let col = 0; col < rows; col++) {
-    let offsetY = - (spacingY * col) / 2;
-
+    let offsetY = -(spacingY * col) / 2;
     for (let i = 0; i <= col; i++) {
-      let x = rackX + col * spacingX + horizontalOffset;
-      let y = rackY + offsetY + i * spacingY + verticalOffset; // Добавляем смещение к Y
+      let x = rackX + col * spacingX + hOffset;
+      let y = rackY + offsetY + i * spacingY + vOffset;
       balls.push(new Ball(x, y, ballDiameter, COLORS.red));
     }
   }
 }
 
-
-// Расставляем цветные шары на столе
 function setupColoredBalls(tableX, tableY, tableWidth, tableHeight) {
   const bd = ballDiameter;
   const halfH = tableY + tableHeight / 2;
-  const baulkX = tableX + tableWidth * 0.25 + 13;
-
-  // Расстояние между цветными шарами в D по вертикали
+  const baulkX = tableX + tableWidth * 0.25;
   const dOffset = bd * 3.5;
 
-  // Желтый — нижняя точка "D"
   balls.push(new Ball(baulkX, halfH + dOffset, bd, COLORS.yellow));
-
-  // Зеленый — верхняя точка "D"
   balls.push(new Ball(baulkX, halfH - dOffset, bd, COLORS.green));
-
-  // Коричневый — центр "D"
   balls.push(new Ball(baulkX, halfH, bd, COLORS.brown));
-
-  // Синий — центр стола
   balls.push(new Ball(tableX + tableWidth / 2, halfH, bd, COLORS.blue));
-
-  // Розовый — чуть перед пирамидой красных
   balls.push(new Ball(tableX + tableWidth * 0.732 - bd * 2, halfH, bd, COLORS.pink));
-
-  // Черный — ближе к верхнему борту, центр по вертикали
   balls.push(new Ball(tableX + tableWidth - bd * 3, halfH, bd, COLORS.black));
 }
 
+function isOverlapping(x, y, radius) {
+  for (let ball of balls) {
+    const dx = ball.body.position.x - x;
+    const dy = ball.body.position.y - y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < (ball.diameter / 2 + radius)) return true;
+  }
+  return false;
+}
 
-// Отрисовка всех шаров
+function setupRandomRedBallsOnly() {
+  clearAllBalls();
+  ballDiameter = tableWidth / 36;
+
+  let attempts = 0;
+  while (balls.length < 15 && attempts < 1000) {
+    let x = random(tableX + ballDiameter, tableX + tableWidth - ballDiameter);
+    let y = random(tableY + ballDiameter, tableY + tableHeight - ballDiameter);
+    if (!isOverlapping(x, y, ballDiameter / 2)) {
+      balls.push(new Ball(x, y, ballDiameter, COLORS.red));
+    }
+    attempts++;
+  }
+}
+
+function setupRandomAllBalls() {
+  clearAllBalls();
+  ballDiameter = tableWidth / 36;
+
+  let attempts = 0;
+  // Красные
+  while (balls.length < 15 && attempts < 1000) {
+    let x = random(tableX + ballDiameter, tableX + tableWidth - ballDiameter);
+    let y = random(tableY + ballDiameter, tableY + tableHeight - ballDiameter);
+    if (!isOverlapping(x, y, ballDiameter / 2)) {
+      balls.push(new Ball(x, y, ballDiameter, COLORS.red));
+    }
+    attempts++;
+  }
+
+  // Цветные
+  const colorKeys = ['yellow', 'green', 'brown', 'blue', 'pink', 'black'];
+  for (let color of colorKeys) {
+    let placed = false;
+    let tries = 0;
+    while (!placed && tries < 200) {
+      let x = random(tableX + ballDiameter, tableX + tableWidth - ballDiameter);
+      let y = random(tableY + ballDiameter, tableY + tableHeight - ballDiameter);
+      if (!isOverlapping(x, y, ballDiameter / 2)) {
+        balls.push(new Ball(x, y, ballDiameter, COLORS[color]));
+        placed = true;
+      }
+      tries++;
+    }
+  }
+}
+
 function drawBalls() {
   for (let ball of balls) {
     ball.show();
   }
 }
-// Проверка: попал ли шар в лузу
-function checkBallInPocket(ball) {
-  let pockets = getPocketPositions();
-  for (let pocket of pockets) {
-    let dx = ball.body.position.x - pocket.x;
-    let dy = ball.body.position.y - pocket.y;
-    let distance = Math.sqrt(dx * dx + dy * dy);
-    if (distance < pocketDiameter / 2) {
-      return true;
-    }
+
+function ballsMoving() {
+  for (let ball of balls) {
+    const v = ball.body.velocity;
+    if (Math.abs(v.x) > 0.1 || Math.abs(v.y) > 0.1) return true;
   }
   return false;
 }
 
-function updateScoreDisplay() {
-  const scoreEl = document.getElementById("scoreDisplay");
-  if (scoreEl) {
-    scoreEl.textContent = score;
+function resetAllBalls() {
+  if (ballsMoving()) return;
+  for (let ball of balls) {
+    ball.resetPosition();
   }
+}
+
+function checkBallInPocket(ball) {
+  const pockets = getPocketPositions(); // предполагается, что она определена
+  for (let pocket of pockets) {
+    const dx = ball.body.position.x - pocket.x;
+    const dy = ball.body.position.y - pocket.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < pocketDiameter / 2) {
+      return true;
+    }
+  }
+  return false;
 }
