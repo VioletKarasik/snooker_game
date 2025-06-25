@@ -1,6 +1,7 @@
 let balls = [];
 let ballDiameter;
 let cueBallPlaced = false;
+let lastCollisions = {};
 
 const COLORS = {
   cue: 'white',
@@ -26,7 +27,7 @@ class Ball {
       friction: 0.05,
       label: 'ball'
     });
-
+    this.body.color = color;
     Matter.World.add(engine.world, this.body);
   }
 
@@ -55,6 +56,91 @@ class Ball {
     pop();
   }
 }
+
+function setupCollisionDetection() {
+  // Обработчик столкновений Matter.js
+  Matter.Events.on(engine, 'collisionStart', function(event) {
+    const pairs = event.pairs;
+    
+    for (let i = 0; i < pairs.length; i++) {
+      const pair = pairs[i];
+      
+      // Проверяем, участвует ли в столкновении биток
+      const cueBallInvolved = 
+        (pair.bodyA.label === 'ball' && pair.bodyA.color === COLORS.cue) ||
+        (pair.bodyB.label === 'ball' && pair.bodyB.color === COLORS.cue);
+      
+      if (!cueBallInvolved) continue;
+      
+      // Определяем какой объект биток, а какой другой
+      let cueBody, otherBody;
+      if (pair.bodyA.color === COLORS.cue) {
+        cueBody = pair.bodyA;
+        otherBody = pair.bodyB;
+      } else {
+        cueBody = pair.bodyB;
+        otherBody = pair.bodyA;
+      }
+      
+      // Определяем тип столкновения
+      let collisionType;
+      
+      if (otherBody.label === 'ball') {
+        // Столкновение с другим шаром
+        if (otherBody.color === COLORS.red) {
+          collisionType = 'cue-red';
+        } else {
+          collisionType = 'cue-color';
+        }
+      } else {
+        // Столкновение с бортом
+        collisionType = 'cue-cushion';
+      }
+      
+      // Проверяем, не было ли уже такого столкновения недавно
+      const collisionKey = `${cueBody.id}-${otherBody.id}`;
+      if (!lastCollisions[collisionKey] || Date.now() - lastCollisions[collisionKey] > 500) {
+        // Показываем сообщение о столкновении
+        showCollisionMessage(collisionType);
+        lastCollisions[collisionKey] = Date.now();
+      }
+    }
+  });
+}
+
+function showCollisionMessage(type) {
+  let message = '';
+  
+  switch(type) {
+    case 'cue-red':
+      message = 'Cue ball hit a red ball!';
+      break;
+    case 'cue-color':
+      message = 'Cue ball hit a colored ball!';
+      break;
+    case 'cue-cushion':
+      message = 'Cue ball hit the cushion!';
+      break;
+    default:
+      message = 'Cue ball collision detected!';
+  }
+  
+  // Выводим сообщение в консоль (можно заменить на отображение в интерфейсе)
+  console.log(message);
+  
+  // Если у вас есть элемент для отображения сообщений:
+  const messageElement = document.getElementById('collision-message');
+  if (messageElement) {
+    messageElement.textContent = message;
+    messageElement.style.display = 'block';
+    
+    // Скрываем сообщение через 2 секунды
+    setTimeout(() => {
+      messageElement.style.display = 'none';
+    }, 2000);
+  }
+}
+
 
 function clearAllBalls() {
   for (let ball of balls) {

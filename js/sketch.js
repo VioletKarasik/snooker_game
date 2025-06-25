@@ -17,6 +17,7 @@ function setupGame() {
   setupTable(width, height - tableTopOffset);
   setupBalls(tableX, tableY, tableWidth, tableHeight);
   setupTableBorders(tableX, tableY, tableWidth, tableHeight);
+  setupCollisionDetection();
 }
 
 function draw() {
