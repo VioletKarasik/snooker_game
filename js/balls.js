@@ -142,7 +142,16 @@ function checkBallInPocket(ball) {
     let distance = Math.sqrt(dx * dx + dy * dy);
     if (distance < pocketDiameter / 2) {
       return true;
+      score += 10; // или сколько хочешь за шар
+      updateScoreDisplay();
+
     }
   }
   return false;
+}
+function updateScoreDisplay() {
+  const scoreEl = document.getElementById("scoreDisplay");
+  if (scoreEl) {
+    scoreEl.textContent = score;
+  }
 }
