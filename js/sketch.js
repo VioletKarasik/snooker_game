@@ -63,5 +63,34 @@ function keyPressed() {
     cueBall = null;
     cueBallPlaced = false;
   }
+  // R — сброс прицеливания
+  if (key === 'r' || key === 'R') {
+    isAiming = false;
+    cueStartPos = null;
+    return;
+  }
+
+  // K — переключить режим управления
+  if (key === 'k' || key === 'K') {
+    useKeyboardAim = !useKeyboardAim;
+    isAiming = false;
+    cueStartPos = null;
+    return;
+  }
+
+  // Управление в режиме клавиатуры
+  if (useKeyboardAim) {
+    switch (keyCode) {
+      case LEFT_ARROW:
+        cueAngle -= 0.05;
+        break;
+      case RIGHT_ARROW:
+        cueAngle += 0.05;
+        break;
+      case 32: // Space
+        hitCueBallFromAngle();
+        break;
+    }
+  }
 }
 
