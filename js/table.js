@@ -7,54 +7,76 @@ function setupTable(canvasWidth, canvasHeight) {
   tableHeight = tableWidth / 2;
 
   tableX = (canvasWidth - tableWidth) / 2;
-  tableY = (canvasHeight - tableHeight) / 2;
+  tableY = (canvasHeight - tableHeight) / 2 - 50;
 
   pocketDiameter = tableWidth / 36 * 1.5;
 }
 
 // Функция рисования стола с повёрнутым полукругом D вниз
 function drawTable() {
-  fill(102, 51, 0);
+  // --- Деревянный борт с лёгкой текстурой ---
   noStroke();
-  rect(tableX - 20, tableY - 20, tableWidth + 40, tableHeight + 40, 20);
-
-  fill(20, 100, 20);
-  rect(tableX, tableY, tableWidth, tableHeight, 10);
-
-  // Лузы
-  fill(0);
-  let pockets = getPocketPositions();
-  for (let p of pockets) {
-    ellipse(p.x, p.y, pocketDiameter);
+  for (let i = 0; i < 20; i++) {
+    let inter = map(i, 0, 19, 0.4, 0.7);
+    fill(102 * inter, 51 * inter, 0);
+    rect(tableX - 20 - i, tableY - 20 - i, tableWidth + 40 + i * 2, tableHeight + 40 + i * 2, 30);
   }
 
-  // Центр стола — линия
-  stroke(255);
-  strokeWeight(2);
-  line(tableX, tableY + tableHeight / 2, tableX + tableWidth, tableY + tableHeight / 2);
+  // --- Сукно с мягким градиентом ---
+  setGradient(tableX, tableY, tableWidth, tableHeight, color(20, 100, 20), color(10, 60, 10));
+  rect(tableX, tableY, tableWidth, tableHeight, 12);
 
-  // --- "D" развернута на 180 градусов ---
-  let dShift = 600; // на сколько пикселей влево сдвинуть
+  // --- Лузы с тенью ---
+  let pockets = getPocketPositions();
+  for (let p of pockets) {
+  let shadowOffsetX = 0;
+  let shadowOffsetY = 0;
 
+  // Определим направление тени по расположению лузы
+  if (p.x < tableX + tableWidth / 2) {
+    shadowOffsetX = 2;
+  } else if (p.x > tableX + tableWidth / 2) {
+    shadowOffsetX = -2;
+  }
+
+  if (p.y < tableY + tableHeight / 2) {
+    shadowOffsetY = 2;
+  } else if (p.y > tableY + tableHeight / 2) {
+    shadowOffsetY = -2;
+  }
+
+  // Тень
+  fill(0, 100);
+  ellipse(p.x + shadowOffsetX, p.y + shadowOffsetY, pocketDiameter * 1.05);
+
+  // Лунка
+  fill(0);
+  ellipse(p.x, p.y, pocketDiameter);
+}
+
+
+  // --- Центр. линия ---
+  // stroke(255, 180);
+  // strokeWeight(2);
+  // line(tableX, tableY + tableHeight / 2, tableX + tableWidth, tableY + tableHeight / 2);
+
+  // --- "D" развернута вниз ---
+  let dShift = 600;
   let dRadius = tableWidth * 0.10;
-  let dCenterX = tableX + tableWidth - dRadius - pocketDiameter * 2 - dShift; // ← сдвиг влево
+  let dCenterX = tableX + tableWidth - dRadius - pocketDiameter * 2 - dShift;
   let dCenterY = tableY + tableHeight / 2;
 
   noFill();
+  stroke(255);
   arc(dCenterX, dCenterY, dRadius * 2, dRadius * 2, HALF_PI, -HALF_PI);
 
-  // Вертикальная линия-граница справа от "D"
-  let lineShift = 106; // на сколько пикселей влево сдвинуть
-
-  let dLineX = dCenterX + dRadius - lineShift; // правая граница "D"
-  let dLineY1 = tableY;
-  let dLineY2 = tableY + tableHeight;
-
-  stroke(255);
+  // Вертикальная линия справа от "D"
+  let lineShift = 106;
+  let dLineX = dCenterX + dRadius - lineShift;
   strokeWeight(2);
-  line(dLineX, dLineY1, dLineX, dLineY2);
-
+  line(dLineX, tableY, dLineX, tableY + tableHeight);
 }
+
 
 function setupTableBorders(tableX, tableY, tableWidth, tableHeight) {
   const thickness = 50; // толщина стен
@@ -112,4 +134,13 @@ function getPocketPositions() {
     { x: tableX + tableWidth / 2, y: tableY + tableHeight },
     { x: tableX + tableWidth, y: tableY + tableHeight },
   ];
+}
+function setGradient(x, y, w, h, c1, c2) {
+  noFill();
+  for (let i = y; i <= y + h; i++) {
+    let inter = map(i, y, y + h, 0, 1);
+    let c = lerpColor(c1, c2, inter);
+    stroke(c);
+    line(x, i, x + w, i);
+  }
 }

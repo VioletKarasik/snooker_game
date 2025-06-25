@@ -10,7 +10,7 @@ const COLORS = {
   green: 'green',
   brown: 'brown',
   blue: 'blue',
-  pink: 'pink',
+  pink: 'plum',
   black: 'black'
 };
 
@@ -29,17 +29,34 @@ class Ball {
   }
 
   show() {
-    const pos = this.body.position;
-    const angle = this.body.angle;
+  const pos = this.body.position;
+  const r = this.diameter / 2;
 
-    push();
-    translate(pos.x, pos.y);
-    rotate(angle);
-    noStroke();
-    fill(this.color);
-    ellipse(0, 0, this.diameter);
-    pop();
-  }
+  push();
+  translate(pos.x, pos.y);
+  noStroke();
+
+  // Основа шара — основной цвет
+  fill(this.color);
+  ellipse(0, 0, this.diameter);
+
+  // Светлый блик
+  let highlightColor = color(255, 255, 255, 90); // Белый полупрозрачный
+  let bX = -r * 0.4;
+  let bY = -r * 0.4;
+  let bSize = this.diameter * 0.35;
+
+  fill(highlightColor);
+  ellipse(bX, bY, bSize);
+
+  // Легкая тень внизу
+  let shadowColor = color(0, 0, 0, 30);
+  fill(shadowColor);
+  ellipse(0, r * 0.3, bSize * 0.8);
+
+  pop();
+}
+
 }
 
 // Функция установки всех шаров на стол
@@ -115,4 +132,17 @@ function drawBalls() {
   for (let ball of balls) {
     ball.show();
   }
+}
+// Проверка: попал ли шар в лузу
+function checkBallInPocket(ball) {
+  let pockets = getPocketPositions();
+  for (let pocket of pockets) {
+    let dx = ball.body.position.x - pocket.x;
+    let dy = ball.body.position.y - pocket.y;
+    let distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance < pocketDiameter / 2) {
+      return true;
+    }
+  }
+  return false;
 }
