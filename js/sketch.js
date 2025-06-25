@@ -43,7 +43,16 @@ function updateScoreDisplay() {
 }
 
 function keyPressed() {
-  if (key === '1') {
+  if (!cueBallPlaced) {
+    if (isInDZone(mouseX, mouseY)) {
+      // Создаем cue ball в позиции клика
+      balls.push(new Ball(mouseX, mouseY, ballDiameter, COLORS.cue));
+      cueBallPlaced = true;
+    } else {
+      console.log("Cue ball must be placed inside the D zone!");
+      // Можно показать сообщение на экране или подсветить "D"
+    }
+  } else if (key === '1') {
     clearAllBalls();
     setupBalls(tableX, tableY, tableWidth, tableHeight);
   } else if (key === '2') {

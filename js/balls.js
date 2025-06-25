@@ -1,5 +1,7 @@
 let balls = [];
 let ballDiameter;
+let cueBallPlaced = false;
+
 const COLORS = {
   cue: 'white',
   red: 'red',
@@ -65,16 +67,27 @@ function setupBalls(tableX, tableY, tableWidth, tableHeight) {
   ballDiameter = tableWidth / 36;
   clearAllBalls();
 
-  const cueX = tableX + tableWidth * 0.15 + ballDiameter * 1.5;
-  const cueY = tableY + tableHeight / 2;
-  balls.push(new Ball(cueX, cueY, ballDiameter, COLORS.cue));
-
   const rackX = tableX + tableWidth * 0.75;
   const rackY = tableY + tableHeight / 2 - ((Math.sqrt(3) / 2) * ballDiameter * 2);
   setupRedBalls(rackX, rackY);
 
   setupColoredBalls(tableX, tableY, tableWidth, tableHeight);
 }
+function isInDZone(x, y) {
+  let dRadius = tableWidth * 0.10;
+  let dCenterX = tableX + tableWidth * 0.25;
+  let dCenterY = tableY + tableHeight / 2;
+
+  let dx = x - dCenterX;
+  let dy = y - dCenterY;
+
+  // Проверка: внутри круга и левее центра (левая полусфера)
+  if (dx <= 0 && dx * dx + dy * dy <= dRadius * dRadius) {
+    return true;
+  }
+  return false;
+}
+
 
 function setupRedBalls(rackX, rackY) {
   const rows = 5;
