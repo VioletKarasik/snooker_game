@@ -26,6 +26,8 @@ function draw() {
   drawTable();
   drawBalls();
   drawCue();
+  checkCueBallPotted(); 
+  checkColoredBallsPotted();
 
   for (let i = balls.length - 1; i >= 0; i--) {
     if (checkBallInPocket(balls[i])) {
@@ -43,23 +45,23 @@ function updateScoreDisplay() {
 }
 
 function keyPressed() {
-  if (!cueBallPlaced) {
-    if (isInDZone(mouseX, mouseY)) {
-      // Создаем cue ball в позиции клика
-      balls.push(new Ball(mouseX, mouseY, ballDiameter, COLORS.cue));
-      cueBallPlaced = true;
-    } else {
-      console.log("Cue ball must be placed inside the D zone!");
-      // Можно показать сообщение на экране или подсветить "D"
-    }
-  } if (key === '1') {
+  if (key === '1') {
     clearAllBalls();
     setupBalls(tableX, tableY, tableWidth, tableHeight);
+    cueBall = null;
+    cueBallPlaced = false;
+
   } else if (key === '2') {
     clearAllBalls();
     setupRandomRedBallsOnly();
+    cueBall = null;
+    cueBallPlaced = false;
+
   } else if (key === '3') {
     clearAllBalls();
     setupRandomAllBalls();
+    cueBall = null;
+    cueBallPlaced = false;
   }
 }
+

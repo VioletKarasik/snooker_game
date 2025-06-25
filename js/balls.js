@@ -143,6 +143,7 @@ function setupRandomRedBallsOnly() {
     }
     attempts++;
   }
+
 }
 
 function setupRandomAllBalls() {
@@ -175,7 +176,19 @@ function setupRandomAllBalls() {
       tries++;
     }
   }
+
 }
+
+function mousePressed() {
+  // Если биток ещё не размещён, размещаем биток по месту клика
+  if (!cueBallPlaced) {
+    // Создаём биток там, где кликнули
+    cueBall = new Ball(mouseX, mouseY, ballDiameter, COLORS.cue);
+    balls.push(cueBall);
+    cueBallPlaced = true;
+  }
+}
+
 
 function drawBalls() {
   for (let ball of balls) {
@@ -209,4 +222,46 @@ function checkBallInPocket(ball) {
     }
   }
   return false;
+}
+function checkCueBallPotted() {
+  if (!cueBall) return;
+
+  if (checkBallInPocket(cueBall)) {
+    // Удаляем биток из физического мира
+    Matter.World.remove(engine.world, cueBall.body);
+
+    // Удаляем из массива шаров
+    balls = balls.filter(ball => ball !== cueBall);
+
+    // Сбрасываем флаг и ссылку
+    cueBall = null;
+    cueBallPlaced = false;
+
+    console.log("Cue ball potted. Place it again in the D zone.");
+  }
+}
+function checkColoredBallsPotted() {
+  // Чтобы избежать проблем с изменением массива во время итерации, создадим копию
+  for (let ball of [...balls]) {
+    // Пропускаем биток (обрабатывается отдельно)
+    if (ball.color === COLORS.cue) continue;
+
+    if (checkBallInPocket(ball)) {
+      // Удаляем шар из мира
+      Matter.World.remove(engine.world, ball.body);
+
+      // Удаляем из массива
+      balls = balls.filter(b => b !== ball);
+
+      if (ball.color === COLORS.red) {
+        // Красный шар просто пропадает, не респавним его
+        console.log(`Red ball potted and removed.`);
+      } else {
+        // Цветные шары респавнятся на исходной позиции
+        let respottedBall = new Ball(ball.originalX, ball.originalY, ballDiameter, ball.color);
+        balls.push(respottedBall);
+        console.log(`Colored ball (${ball.color}) potted and re-spotted.`);
+      }
+    }
+  }
 }
