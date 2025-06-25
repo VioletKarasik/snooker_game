@@ -56,6 +56,51 @@ function drawTable() {
 
 }
 
+function setupTableBorders(tableX, tableY, tableWidth, tableHeight) {
+  const thickness = 50; // толщина стен
+
+  const borders = [
+    // Верхняя граница
+    Matter.Bodies.rectangle(
+      tableX + tableWidth / 2,
+      tableY - thickness / 2,
+      tableWidth,
+      thickness,
+      { isStatic: true }
+    ),
+
+    // Нижняя граница
+    Matter.Bodies.rectangle(
+      tableX + tableWidth / 2,
+      tableY + tableHeight + thickness / 2,
+      tableWidth,
+      thickness,
+      { isStatic: true }
+    ),
+
+    // Левая граница
+    Matter.Bodies.rectangle(
+      tableX - thickness / 2,
+      tableY + tableHeight / 2,
+      thickness,
+      tableHeight,
+      { isStatic: true }
+    ),
+
+    // Правая граница
+    Matter.Bodies.rectangle(
+      tableX + tableWidth + thickness / 2,
+      tableY + tableHeight / 2,
+      thickness,
+      tableHeight,
+      { isStatic: true }
+    )
+  ];
+
+  for (let wall of borders) {
+    Matter.World.add(engine.world, wall);
+  }
+}
 
 
 function getPocketPositions() {

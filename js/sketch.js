@@ -9,8 +9,9 @@ function setup() {
   // Инициализируем параметры стола в table.js
   setupTable(width, height);
 
-  setupBoundaries(tableX, tableY, tableWidth, tableHeight);
   setupBalls(tableX, tableY, tableWidth, tableHeight);
+  setupTableBorders(tableX, tableY, tableWidth, tableHeight);
+
 }
 
 function draw() {
@@ -20,4 +21,6 @@ function draw() {
   drawTable();
 
   drawBalls();
+
+  drawCue();  
 }
