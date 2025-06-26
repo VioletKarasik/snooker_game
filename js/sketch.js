@@ -1,9 +1,8 @@
 let canvas;
 let score = 0;
-let tableTopOffset = 120;
 
 function setup() {
-  canvas = createCanvas(1200, 700);
+  canvas = createCanvas(1200, 880);
   canvas.parent(document.body);
 
   rectMode(CORNER);
@@ -14,7 +13,7 @@ function setup() {
 }
 
 function setupGame() {
-  setupTable(width, height - tableTopOffset);
+  setupTable(width, height);
   setupBalls(tableX, tableY, tableWidth, tableHeight);
   setupTableBorders(tableX, tableY, tableWidth, tableHeight);
   setupCollisionDetection();

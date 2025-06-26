@@ -225,13 +225,6 @@ function mouseReleased() {
 
 let showAimGuide = false;
 
-function keyPressed() {
-  if (key === 'k' || key === 'K') {
-    showAimGuide = !showAimGuide;
-    return;
-  }
-}
-
 function hitCueBallFromAngle() {
    if (!cueBall || cueBall.body.speed>0.1) return;
 

@@ -7,7 +7,7 @@ function setupTable(canvasWidth, canvasHeight) {
   tableHeight = tableWidth / 2;
 
   tableX = (canvasWidth - tableWidth) / 2;
-  tableY = (canvasHeight - tableHeight) / 2 + 50;
+  tableY = 50;
 
   pocketDiameter = tableWidth / 36 * 1.5;
 }

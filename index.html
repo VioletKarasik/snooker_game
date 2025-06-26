@@ -1,67 +1,217 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Snooker Game</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
-  
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --accent-color: #e74c3c;
+      --text-light: #ecf0f1;
+      --text-dark: #2c3e50;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+    
     body {
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Montserrat', sans-serif;
       background-image: url(background.avif);
+      background-size: cover;
+      background-attachment: fixed;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
-      height: 100%;
+      height: 100vh;
+      color: var(--text-light);
     }
-    
+
     #game-container {
       position: relative;
-      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
     }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+    }
+
     #ui-panel {
       position: absolute;
-      top: 20px;
-      left: 20px;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 10px 15px;
-      border-radius: 5px;
+      top: 30px;
+      left: 30px;
+      color: var(--text-light);
+      padding: 10px;
       z-index: 100;
+      display: none;
+      max-width: 280px;
+      backdrop-filter: blur(5px);
     }
-    
-    button {
-      background-color: #4CAF50;
+
+    #ui-panel h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--text-light);
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 24px;
+      border-bottom: 2px solid var(--secondary-color);
+      padding-bottom: 8px;
+    }
+
+    #score-display {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+
+    #score-value {
+      color: var(--secondary-color);
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    .ball-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .ball-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      width: calc(50% - 5px);
+    }
+
+    .ball-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      margin-right: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    #welcome-screen {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--text-light);
+      padding: 15px;
+      text-align: center;
+      z-index: 200;
+      max-width: 500px;
+      width: 90%;
+      backdrop-filter: blur(10px);
+      margin-bottom: 100px;
+    }
+
+    #welcome-screen h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      margin-bottom: 20px;
+      color: var(--text-light);
+    }
+
+    #welcome-screen p {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--secondary-color), #2980b9);
       border: none;
       color: white;
-      padding: 10px 20px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
+      padding: 12px 28px;
       font-size: 16px;
-      margin: 10px 2px;
+      font-weight: 600;
+      margin-top: 10px;
       cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s;
+      border-radius: 50px;
+      transition: var(--transition);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    
-    button:hover {
-      background-color: #45a049;
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(135deg, #3498db, #3498db);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .controls-info {
+      margin-top: 25px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+      #ui-panel {
+        top: 15px;
+        left: 15px;
+        padding: 15px;
+        max-width: 200px;
+      }
+      
+      #welcome-screen {
+        padding: 25px;
+      }
+      
+      #welcome-screen h1 {
+        font-size: 24px;
+      }
     }
   </style>
 </head>
 <body>
   <div id="game-container">
-    <!-- Изменяем этот раздел в index.html -->
-<div id="ui-panel">
-  <h2>Снукер</h2>
-  <p id="score-display">Очки: <span id="score-value">0</span></p>
-</div>
+    <!-- Панель очков и инфы -->
+    <div id="ui-panel">
+      <h2>Снукер</h2>
+      <p id="score-display">Очки: <span id="score-value">0</span></p>
+      <div class="ball-info">
+        <div class="ball-item"><span class="ball-color" style="background: red;"></span>Красный — 1</div>
+        <div class="ball-item"><span class="ball-color" style="background: yellow;"></span>Жёлтый — 2</div>
+        <div class="ball-item"><span class="ball-color" style="background: green;"></span>Зелёный — 3</div>
+        <div class="ball-item"><span class="ball-color" style="background: #8B4513;"></span>Коричневый — 4</div>
+        <div class="ball-item"><span class="ball-color" style="background: blue;"></span>Синий — 5</div>
+        <div class="ball-item"><span class="ball-color" style="background: pink;"></span>Розовый — 6</div>
+        <div class="ball-item"><span class="ball-color" style="background: black;"></span>Чёрный — 7</div>
+      </div>
+      <p class="controls-info">Управление: мышь / стрелки + пробел<br>R — сброс удара<br>K — сменить режим</p>
+    </div>
+
+    <!-- Приветственный экран -->
+    <div id="welcome-screen">
+      <h1>Добро пожаловать в Снукер!</h1>
+      <p>Погрузитесь в мир классического снукера с реалистичной физикой, прицеливанием и счётом. Побеждайте, забивайте и улучшайте свои навыки!</p>
+      <button class="btn" onclick="startGame()">Начать игру</button>
+      <div class="controls-info">
+        <p>Управление: мышь / стрелки + пробел</p>
+        <p>R — сброс удара, K — смена режима</p>
+      </div>
+    </div>
   </div>
 
   <!-- Скрипты -->
@@ -70,5 +220,12 @@
   <script src="js/balls.js"></script>
   <script src="js/cue.js"></script>
   <script src="js/sketch.js"></script>
+
+  <script>
+    function startGame() {
+      document.getElementById("welcome-screen").style.display = "none";
+      document.getElementById("ui-panel").style.display = "block";
+    }
+  </script>
 </body>
 </html>
