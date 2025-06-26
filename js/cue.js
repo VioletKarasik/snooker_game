@@ -19,7 +19,8 @@ let cueAngle = 0; // угол в радианах
 const offsetDistance = -15; // Расстояние смещения кий от шара (можно регулировать)
 
 function drawCue() {
-  if (!cueBall || (!isAiming && !useKeyboardAim && !strikeAnimationInProgress)) return;
+  if (!cueBall || (!isAiming && !useKeyboardAim && !strikeAnimationInProgress && !showAimGuide)) return;
+
 
 
   const pos = cueBall.body.position;
@@ -129,6 +130,38 @@ let cueEndY = pos.y + dy * (ballRadius + 50 + pullDistance * 1.5);
           powerX+dx*15,
           powerY+dy*15);
    }
+if (showAimGuide && !strikeAnimationInProgress) {
+  // Пунктирная линия назад — прицел
+let dashLength = 10;
+let gapLength = 10;
+let aimLength = 300;
+
+stroke(255, 0, 0, 150); // Красный с прозрачностью
+strokeWeight(2);
+
+let offsetDistance = -60; // на сколько подальше от шара
+let x0 = contactX + dx * offsetDistance;
+let y0 = contactY + dy * offsetDistance;
+let x1 = contactX - dx * aimLength;
+let y1 = contactY - dy * aimLength;
+
+let totalLength = dist(x0, y0, x1, y1);
+let steps = totalLength / (dashLength + gapLength);
+
+for (let i = 0; i < steps; i++) {
+  let t1 = i * (dashLength + gapLength) / totalLength;
+  let t2 = t1 + dashLength / totalLength;
+  if (t2 > 1) t2 = 1;
+
+  let sx = lerp(x0, x1, t1);
+  let sy = lerp(y0, y1, t1);
+  let ex = lerp(x0, x1, t2);
+  let ey = lerp(y0, y1, t2);
+
+  line(sx, sy, ex, ey);
+}
+
+}
 
    pop();
 }
@@ -152,7 +185,10 @@ function mousePressed() {
 
 function mouseReleased() {
   if (!isAiming || !cueBall || cueBall.body.speed > 0.1) return;
-
+// Отключаем прицеливание и скрываем кий при ударе
+  showAimGuide = false;
+  isAiming = false;
+  cueStartPos = null;
   const pos = cueBall.body.position;
   const ballRadius = cueBall.diameter / 2;
 
@@ -187,6 +223,14 @@ function mouseReleased() {
   cueStartPos = null;
 }
 
+let showAimGuide = false;
+
+function keyPressed() {
+  if (key === 'k' || key === 'K') {
+    showAimGuide = !showAimGuide;
+    return;
+  }
+}
 
 function hitCueBallFromAngle() {
    if (!cueBall || cueBall.body.speed>0.1) return;

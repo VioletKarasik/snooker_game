@@ -42,10 +42,11 @@ function draw() {
 }
 
 function updateScoreDisplay() {
-  const scoreEl = document.getElementById("scoreDisplay");
-  if (scoreEl) scoreEl.textContent = `Score: ${score}`;
+  const scoreValueEl = document.getElementById("score-value");
+  if (scoreValueEl) {
+    scoreValueEl.textContent = score;
+  }
 }
-
 
 function keyPressed() {
   if (key === '1') {
@@ -75,9 +76,7 @@ function keyPressed() {
 
   // K — переключить режим управления
   if (key === 'k' || key === 'K') {
-    useKeyboardAim = !useKeyboardAim;
-    isAiming = false;
-    cueStartPos = null;
+    showAimGuide = !showAimGuide;
     return;
   }
 
