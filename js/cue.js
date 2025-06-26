@@ -19,9 +19,8 @@ let cueAngle = 0; // угол в радианах
 const offsetDistance = -15; // Расстояние смещения кий от шара (можно регулировать)
 
 function drawCue() {
+  if (!isNearTable(mouseX, mouseY)) return;
   if (!cueBall || (!isAiming && !useKeyboardAim && !strikeAnimationInProgress && !showAimGuide)) return;
-
-
 
   const pos = cueBall.body.position;
   const ballRadius = cueBall.diameter / 2;
@@ -167,25 +166,31 @@ for (let i = 0; i < steps; i++) {
 }
 
 function mousePressed() {
+  // Размещение битка (работает только после начала игры)
   if (!cueBallPlaced) {
-    if (isInDZone(mouseX, mouseY) && !isOverlapping(mouseX, mouseY, ballDiameter/2)) {
-      cueBall= new Ball(mouseX, mouseY, ballDiameter,COLORS.cue);
+    if (gameStarted && isInDZone(mouseX, mouseY) && !isOverlapping(mouseX, mouseY, ballDiameter/2)) {
+      cueBall = new Ball(mouseX, mouseY, ballDiameter, COLORS.cue);
       balls.push(cueBall);
-      cueBallPlaced= true;
-      return;
+      cueBallPlaced = true;
+      return false;
     }
-    return;
+    return false;
   }
 
-  if (cueBall && cueBall.body.speed<0.1) {
-    isAiming= true;
-    cueStartPos= {x: mouseX,y: mouseY};
+  // Управление кием (работает только после начала игры и размещения битка)
+  if (gameStarted && cueBall && cueBall.body.speed < 0.1) {
+    isAiming = true;
+    cueStartPos = {x: mouseX, y: mouseY};
+    return false;
   }
+  
+  return true;
 }
 
 function mouseReleased() {
-  if (!isAiming || !cueBall || cueBall.body.speed > 0.1) return;
-// Отключаем прицеливание и скрываем кий при ударе
+  if (!gameStarted || !isAiming || !cueBall || cueBall.body.speed > 0.1) return false;
+  
+  // Отключаем прицеливание и скрываем кий при ударе
   showAimGuide = false;
   isAiming = false;
   cueStartPos = null;
@@ -195,10 +200,7 @@ function mouseReleased() {
   let dx = mouseX - pos.x;
   let dy = mouseY - pos.y;
   let distance = Math.sqrt(dx * dx + dy * dy);
-    strikeAnimationInProgress = true;
-    strikeAnimationProgress = 0;
-    strikePhase = 0; // начинаем с отката
-
+  
   if (distance >= minPullDistance) {
     dx /= distance;
     dy /= distance;
@@ -217,10 +219,10 @@ function mouseReleased() {
 
     strikeAnimationInProgress = true;
     strikeAnimationProgress = 0;
+    strikePhase = 0; // начинаем с отката
   }
 
-  isAiming = false;
-  cueStartPos = null;
+  return false;
 }
 
 let showAimGuide = false;

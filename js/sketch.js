@@ -2,7 +2,7 @@ let canvas;
 let score = 0;
 
 function setup() {
-  canvas = createCanvas(1200, 880);
+  canvas = createCanvas(1200, 850);
   canvas.parent(document.body);
 
   rectMode(CORNER);

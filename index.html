@@ -1,101 +1,129 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Snooker Game</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Limelight&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+Marker+Gothic&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary-color: #2c3e50;
-      --secondary-color: #3498db;
-      --accent-color: #e74c3c;
-      --text-light: #ecf0f1;
-      --text-dark: #2c3e50;
-      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      --transition: all 0.3s ease;
+      --primary-color: #1a1a2e;
+      --secondary-color: #4cc9f0;
+      --accent-color: #f72585;
+      --text-light: #f8f9fa;
+      --text-muted: #e9ecef;
+      --panel-bg: rgba(26, 26, 46, 0.85);
+      --controls-bg: rgba(76, 201, 240, 0.15);
+      --welcome-bg: rgba(26, 26, 46, 0.9);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      --transition: all 0.3s ease-in-out;
     }
-    
+
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Montserrat', sans-serif;
-      background-image: url(background.avif);
+      background: url(background.avif) no-repeat center center fixed;
       background-size: cover;
-      background-attachment: fixed;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
       height: 100vh;
       color: var(--text-light);
+      overflow: hidden;
     }
 
     #game-container {
       position: relative;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       width: 100%;
       height: 100%;
+      padding-top: 30px;
     }
 
     canvas {
       display: block;
       margin: 0 auto;
       box-shadow: var(--shadow);
-      border-radius: 8px;
+      border-radius: 12px;
     }
 
-    #ui-panel {
+    .ui-panel {
       position: absolute;
       top: 30px;
-      left: 30px;
       color: var(--text-light);
-      padding: 10px;
+      padding: 16px 20px;
       z-index: 100;
-      display: none;
+      border-radius: 12px;
       max-width: 280px;
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+      transition: var(--transition);
     }
 
-    #ui-panel h2 {
-      font-family: 'Playfair Display', serif;
-      color: var(--text-light);
-      margin-top: 0;
+    #info-panel {
+      left: 30px;
+      background-color: var(--panel-bg);
+      border: 1px solid var(--secondary-color);
+      display: none;
+    }
+
+    #controls-panel {
+      right: 30px;
+      background-color: var(--controls-bg);
+      border: 1px solid var(--accent-color);
+      transform: translateX(calc(100% + 30px));
+      opacity: 0;
+    }
+
+    #controls-panel.visible {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .panel-title {
+      font-family: 'Limelight', sans-serif;
+      font-size: 22px;
       margin-bottom: 15px;
-      font-size: 24px;
-      border-bottom: 2px solid var(--secondary-color);
-      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent-color);
+      padding-bottom: 6px;
+      color: var(--accent-color);
     }
 
     #score-display {
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 400;
       margin-bottom: 15px;
+      font-family: 'Limelight', sans-serif;
     }
 
     #score-value {
-      color: var(--secondary-color);
+      color: var(--accent-color);
       font-weight: bold;
-      font-size: 20px;
+      font-size: 22px;
     }
 
     .ball-info {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-top: 15px;
     }
 
     .ball-item {
       display: flex;
       align-items: center;
-      margin-bottom: 8px;
       width: calc(50% - 5px);
+      font-size: 15px;
+      font-family: "LXGW Marker Gothic", sans-serif;
     }
 
     .ball-color {
@@ -103,7 +131,19 @@
       height: 16px;
       border-radius: 50%;
       margin-right: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .controls-info {
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    .controls-info p {
+      margin: 8px 0;
+      line-height: 1.4;
+      font-family: "LXGW Marker Gothic", sans-serif;
     }
 
     #welcome-screen {
@@ -111,110 +151,162 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: var(--text-light);
-      padding: 15px;
+      padding: 40px 40px;
+      border-radius: 16px;
       text-align: center;
       z-index: 200;
-      max-width: 500px;
       width: 90%;
-      backdrop-filter: blur(10px);
-      margin-bottom: 100px;
+      max-width: 500px;
+      backdrop-filter: blur(12px);
+      background-color: var(--welcome-bg);
+      border: 2px solid var(--accent-color);
+      box-shadow: var(--shadow);
     }
 
     #welcome-screen h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 32px;
+      font-family: 'Limelight', sans-serif;
+      font-size: 34px;
+      color: var(--accent-color);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
       margin-bottom: 20px;
-      color: var(--text-light);
     }
 
     #welcome-screen p {
       font-size: 16px;
       line-height: 1.6;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
+      font-family: "LXGW Marker Gothic", sans-serif;
     }
 
     .btn {
-      background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+      background: linear-gradient(135deg, var(--accent-color), #b5179e);
       border: none;
       color: white;
-      padding: 12px 28px;
+      padding: 14px 30px;
       font-size: 16px;
-      font-weight: 600;
-      margin-top: 10px;
+      font-weight: 700;
       cursor: pointer;
       border-radius: 50px;
       transition: var(--transition);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       text-transform: uppercase;
       letter-spacing: 1px;
+      box-shadow: var(--shadow);
+      font-family: 'Limelight', sans-serif;
+      position: relative;
+      overflow: hidden;
     }
 
     .btn:hover {
+      background: linear-gradient(135deg, #f72585, #f72585);
       transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      background: linear-gradient(135deg, #3498db, #3498db);
+      box-shadow: 0 6px 16px rgba(247, 37, 133, 0.4);
     }
 
     .btn:active {
       transform: translateY(0);
     }
 
-    .controls-info {
-      margin-top: 25px;
-      font-size: 14px;
-      opacity: 0.8;
+    .toggle-controls {
+      position: absolute;
+      right: 30px;
+      bottom: 30px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 101;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      display: none; /* Скрыто по умолчанию */
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toggle-controls:hover {
+      transform: scale(1.1);
     }
 
     @media (max-width: 768px) {
-      #ui-panel {
+      .ui-panel {
         top: 15px;
+        padding: 12px;
+        max-width: 90%;
+      }
+      
+      #info-panel {
         left: 15px;
-        padding: 15px;
-        max-width: 200px;
+      }
+      
+      #controls-panel {
+        right: 15px;
+        max-width: 250px;
       }
       
       #welcome-screen {
-        padding: 25px;
+        padding: 20px;
       }
       
       #welcome-screen h1 {
-        font-size: 24px;
+        font-size: 26px;
+      }
+      
+      .toggle-controls {
+        right: 15px;
+        bottom: 15px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
       }
     }
   </style>
 </head>
 <body>
   <div id="game-container">
-    <!-- Панель очков и инфы -->
-    <div id="ui-panel">
-      <h2>Снукер</h2>
-      <p id="score-display">Очки: <span id="score-value">0</span></p>
+    <!-- Left panel - score and ball info -->
+    <div id="info-panel" class="ui-panel">
+      <div class="panel-title">SCORE</div>
+      <p id="score-display">Current: <span id="score-value">0</span></p>
       <div class="ball-info">
-        <div class="ball-item"><span class="ball-color" style="background: red;"></span>Красный — 1</div>
-        <div class="ball-item"><span class="ball-color" style="background: yellow;"></span>Жёлтый — 2</div>
-        <div class="ball-item"><span class="ball-color" style="background: green;"></span>Зелёный — 3</div>
-        <div class="ball-item"><span class="ball-color" style="background: #8B4513;"></span>Коричневый — 4</div>
-        <div class="ball-item"><span class="ball-color" style="background: blue;"></span>Синий — 5</div>
-        <div class="ball-item"><span class="ball-color" style="background: pink;"></span>Розовый — 6</div>
-        <div class="ball-item"><span class="ball-color" style="background: black;"></span>Чёрный — 7</div>
+        <div class="ball-item"><span class="ball-color" style="background: #ff3a3a;"></span>Red - 1</div>
+        <div class="ball-item"><span class="ball-color" style="background: #ffeb3b;"></span>Yellow - 2</div>
+        <div class="ball-item"><span class="ball-color" style="background: #4caf50;"></span>Green - 3</div>
+        <div class="ball-item"><span class="ball-color" style="background: #795548;"></span>Brown - 4</div>
+        <div class="ball-item"><span class="ball-color" style="background: #2196f3;"></span>Blue - 5</div>
+        <div class="ball-item"><span class="ball-color" style="background: #e91e63;"></span>Pink - 6</div>
+        <div class="ball-item"><span class="ball-color" style="background: #212121;"></span>Black - 7</div>
       </div>
-      <p class="controls-info">Управление: мышь / стрелки + пробел<br>R — сброс удара<br>K — сменить режим</p>
     </div>
 
-    <!-- Приветственный экран -->
-    <div id="welcome-screen">
-      <h1>Добро пожаловать в Снукер!</h1>
-      <p>Погрузитесь в мир классического снукера с реалистичной физикой, прицеливанием и счётом. Побеждайте, забивайте и улучшайте свои навыки!</p>
-      <button class="btn" onclick="startGame()">Начать игру</button>
+    <!-- Right panel - controls -->
+    <div id="controls-panel" class="ui-panel">
+      <div class="panel-title">CONTROLS</div>
       <div class="controls-info">
-        <p>Управление: мышь / стрелки + пробел</p>
-        <p>R — сброс удара, K — смена режима</p>
+        <p><strong>Aiming:</strong> Move cursor around the cue ball</p>
+        <p><strong>Shot:</strong> Click and hold LMB, then release</p>
+        <p><strong>Power:</strong> Distance controls power</p>
+        <p><strong>Power indicator:</strong> Green - medium, Red - strong</p>
+        <p><strong>Ball return:</strong> LMB in "D" zone after foul</p>
+        <p><strong>R</strong> — Reset shot</p>
+        <p><strong>K</strong> — Aiming</p>
       </div>
     </div>
+
+    <!-- Welcome screen -->
+    <div id="welcome-screen">
+      <h1>Welcome to Snooker!</h1>
+      <p>Dive into the world of classic snooker with realistic physics, aiming and scoring. Win, score and improve your skills!</p>
+      <button class="btn" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Toggle controls button (hidden by default) -->
+    <button class="toggle-controls" id="toggleControls">?</button>
   </div>
 
-  <!-- Скрипты -->
+  <!-- Scripts -->
   <script src="js/physics.js"></script>
   <script src="js/table.js"></script>
   <script src="js/balls.js"></script>
@@ -222,10 +314,21 @@
   <script src="js/sketch.js"></script>
 
   <script>
-    function startGame() {
-      document.getElementById("welcome-screen").style.display = "none";
-      document.getElementById("ui-panel").style.display = "block";
-    }
+   function startGame() {
+  document.getElementById("welcome-screen").style.display = "none";
+  document.getElementById("info-panel").style.display = "block";
+  document.getElementById("toggleControls").style.display = "flex";
+  gameStarted = true; // Устанавливаем флаг, что игра началась
+  
+  // Также можно добавить подсказку в консоль
+  console.log("Game started! You can now place the cue ball.");
+}
+
+    document.getElementById('toggleControls').addEventListener('click', function() {
+      const controlsPanel = document.getElementById('controls-panel');
+      controlsPanel.classList.toggle('visible');
+      this.textContent = controlsPanel.classList.contains('visible') ? '×' : '?';
+    });
   </script>
 </body>
 </html>
