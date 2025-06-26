@@ -30,20 +30,22 @@ function draw() {
   checkCueBallPotted(); 
   checkColoredBallsPotted();
 
+  // Удаление шаров в лузы и подсчёт очков (если есть не учтённые случаи)
   for (let i = balls.length - 1; i >= 0; i--) {
     if (checkBallInPocket(balls[i])) {
       Matter.World.remove(engine.world, balls[i].body);
       balls.splice(i, 1);
-      score += 10;
-      updateScoreDisplay();
+      // Если вдруг сюда попадёт шар — добавим очки (на всякий случай)
+      addScoreForBall(balls[i].color);
     }
   }
 }
 
 function updateScoreDisplay() {
   const scoreEl = document.getElementById("scoreDisplay");
-  if (scoreEl) scoreEl.textContent = score;
+  if (scoreEl) scoreEl.textContent = `Score: ${score}`;
 }
+
 
 function keyPressed() {
   if (key === '1') {

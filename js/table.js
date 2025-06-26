@@ -12,35 +12,119 @@ function setupTable(canvasWidth, canvasHeight) {
   pocketDiameter = tableWidth / 36 * 1.5;
 }
 function drawTable() {
-  // --- Деревянный борт с лёгкой текстурой + зелёные градиенты ---
   noStroke();
+  
+  // Создаем буфер для текстур один раз
+  if (!woodGrainBuffer) {
+    createWoodGrainBuffers();
+  }
+  
   for (let i = 0; i < 20; i++) {
     let inter = map(i, 0, 19, 0.4, 0.7);
     fill(102 * inter, 51 * inter, 0);
-    rect(tableX - 20 - i, tableY - 20 - i, tableWidth + 40 + i * 2, tableHeight + 40 + i * 2, 30);
+    
+    let x = tableX - 20 - i;
+    let y = tableY - 20 - i;
+    let w = tableWidth + 40 + i * 2;
+    let h = tableHeight + 40 + i * 2;
+    
+    rect(x, y, w, h, 30);
+
+    // Рисуем текстуры из буферов
+    if (woodGrainBuffer.top) {
+      image(woodGrainBuffer.top, x, y, w, 40);
+    }
+    if (woodGrainBuffer.bottom) {
+      image(woodGrainBuffer.bottom, x, y + h - 40, w, 40);
+    }
+    if (woodGrainBuffer.left) {
+      image(woodGrainBuffer.left, x, y + 40, 40, h - 80);
+    }
+    if (woodGrainBuffer.right) {
+      image(woodGrainBuffer.right, x + w - 40, y + 40, 40, h - 80);
+    }
   }
 
-  // Зелёные градиенты на бортах
   drawGreenBordersGradient();
-
-  // --- Основное поле (заполняем базовым зелёным) ---
   fill(30, 100, 30);
   rect(tableX, tableY, tableWidth, tableHeight);
-
-  // --- Градиент затемнения у краёв игрового поля ---
   drawTableDarkEdgesGradient();
-
-  // --- Контур стола ---
+  
   noFill();
   stroke(0, 50);
   strokeWeight(1);
   rect(tableX, tableY, tableWidth, tableHeight, 12);
-
-  // --- Лузы с тенью ---
+  
   drawPockets();
-
-  // --- Разметка стола (D и линия) ---
   drawTableMarkings();
+}
+
+// Глобальная переменная для хранения буферов
+let woodGrainBuffer = null;
+
+function createWoodGrainBuffers() {
+  woodGrainBuffer = {
+    top: createGraphics(tableWidth + 80, 40),
+    bottom: createGraphics(tableWidth + 80, 40),
+    left: createGraphics(40, tableHeight + 80),
+    right: createGraphics(40, tableHeight + 80)
+  };
+
+  // Создаем текстуры один раз
+  drawWoodGrainTexture(woodGrainBuffer.top, true);
+  drawWoodGrainTexture(woodGrainBuffer.bottom, true);
+  drawWoodGrainTexture(woodGrainBuffer.left, false);
+  drawWoodGrainTexture(woodGrainBuffer.right, false);
+}
+
+function drawWoodGrainTexture(buffer, horizontal) {
+  buffer.push();
+  buffer.noFill();
+  buffer.stroke(45, 20, 0, 150);
+  buffer.strokeWeight(1.5);
+
+  const w = buffer.width;
+  const h = buffer.height;
+  const lineCount = horizontal ? 8 : 6;
+  const spacing = horizontal ? h / lineCount : w / lineCount;
+  const feather = 20;
+  const step = 10; // Шаг точек
+
+  for (let i = 0; i < lineCount; i++) {
+    buffer.beginShape();
+    
+    for (let j = 0; j <= (horizontal ? w : h); j += step) {
+      let posX = horizontal ? j : i * spacing;
+      let posY = horizontal ? i * spacing : j;
+
+      // Фиксированная волнистость
+      let wave = 3 * sin(j / 15 + i / 2);
+
+      // Эффект затухания у краёв
+      let distToEdge = horizontal ? min(j, w - j) : min(j, h - j);
+      let edgeFeather = distToEdge < feather ? distToEdge / feather : 1;
+      wave *= edgeFeather;
+
+      // Применяем волну
+      if (horizontal) {
+        posY += wave;
+      } else {
+        posX += wave;
+      }
+
+      buffer.curveVertex(posX, posY);
+    }
+    
+    buffer.endShape();
+  }
+
+  // Рамка
+  buffer.noFill();
+  buffer.stroke(45, 20, 0, 100);
+  buffer.strokeWeight(2);
+  buffer.rect(0, 0, w, h, 23);
+  
+  buffer.pop();
 }
 
 function drawTableDarkEdgesGradient() {

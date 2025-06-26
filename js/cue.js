@@ -27,15 +27,21 @@ function drawCue() {
 
   let dx, dy, distance;
 
-  if (useKeyboardAim) {
-    dx = Math.cos(cueAngle);
-    dy = Math.sin(cueAngle);
-    distance = maxPullDistance;
-  } else {
-    dx = mouseX - pos.x;
-    dy = mouseY - pos.y;
-    distance = Math.sqrt(dx * dx + dy * dy);
-  }
+  if (strikeAnimationInProgress) {
+  // Используем зафиксированное направление удара
+  dx = strikeDir.x;
+  dy = strikeDir.y;
+  distance = maxPullDistance * strikePower; // Можно зафиксировать визуальный pull
+} else if (useKeyboardAim) {
+  dx = Math.cos(cueAngle);
+  dy = Math.sin(cueAngle);
+  distance = maxPullDistance;
+} else {
+  dx = mouseX - pos.x;
+  dy = mouseY - pos.y;
+  distance = Math.sqrt(dx * dx + dy * dy);
+}
+
 
   let pullDistance = Math.min(distance, maxPullDistance);
   let powerRatio = map(pullDistance, minPullDistance, maxPullDistance, 0, 1);

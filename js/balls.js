@@ -14,6 +14,17 @@ const COLORS = {
   black: 'black'
 };
 
+const BALL_SCORES = {
+  red: 1,
+  yellow: 2,
+  green: 3,
+  brown: 4,
+  blue: 5,
+  pink: 6,
+  black: 7
+};
+
+
 class Ball {
   constructor(x, y, diameter, color) {
     this.diameter = diameter;
@@ -326,10 +337,24 @@ function checkCueBallPotted() {
     console.log("Cue ball potted. Place it again in the D zone.");
   }
 }
+function addScoreForBall(color) {
+  if (color === COLORS.cue) return; // Биток не даёт очков
+  if (color === COLORS.red) {
+    score += BALL_SCORES.red;
+  } else {
+    // Цветные
+    for (let key in COLORS) {
+      if (COLORS[key] === color && BALL_SCORES[key]) {
+        score += BALL_SCORES[key];
+        break;
+      }
+    }
+  }
+  updateScoreDisplay();
+}
+
 function checkColoredBallsPotted() {
-  // Чтобы избежать проблем с изменением массива во время итерации, создадим копию
   for (let ball of [...balls]) {
-    // Пропускаем биток (обрабатывается отдельно)
     if (ball.color === COLORS.cue) continue;
 
     if (checkBallInPocket(ball)) {
@@ -339,11 +364,13 @@ function checkColoredBallsPotted() {
       // Удаляем из массива
       balls = balls.filter(b => b !== ball);
 
+      // Добавляем очки
+      addScoreForBall(ball.color);
+
       if (ball.color === COLORS.red) {
-        // Красный шар просто пропадает, не респавним его
         console.log(`Red ball potted and removed.`);
       } else {
-        // Цветные шары респавнятся на исходной позиции
+        // Цветные респавнятся
         let respottedBall = new Ball(ball.originalX, ball.originalY, ballDiameter, ball.color);
         balls.push(respottedBall);
         console.log(`Colored ball (${ball.color}) potted and re-spotted.`);
