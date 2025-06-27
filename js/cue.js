@@ -234,6 +234,9 @@ function mouseReleased() {
     strikeAnimationInProgress = true;
     strikeAnimationProgress = 0;
     strikePhase = 0; // начинаем с отката
+
+    // Сбрасываем таймер текущего игрока
+    resetCurrentPlayerTimer();
   }
 
   return false;
@@ -242,6 +245,10 @@ function mouseReleased() {
 let showAimGuide = false;
 
 function hitCueBallFromAngle() {
+  if (isTwoPlayerMode) {
+  timers[currentPlayer - 1] = 30;
+  document.getElementById(`timer${currentPlayer}`).textContent = '30';
+}
    if (!cueBall || cueBall.body.speed>0.1) return;
 
    const pos= cueBall.body.position;
