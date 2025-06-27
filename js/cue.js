@@ -17,11 +17,6 @@ let useKeyboardAim = false;
 let cueAngle = 0; // угол в радианах
 
 const offsetDistance = -15; // Расстояние смещения кий от шара (можно регулировать)
-let cueHitSound;
-
-function preload() {
-  cueHitSound = loadSound('cue.mp3');
-}
 
 function drawCue() {
   if (!isNearTable(mouseX, mouseY)) {
@@ -228,15 +223,6 @@ function mouseReleased() {
     strikePower = map(pullDistance, minPullDistance, maxPullDistance, 0, 1);
     strikePower = constrain(strikePower, 0, 1);
 
-    // Воспроизводим звук удара
-    if (cueHitSound) {
-      // Настраиваем громкость в зависимости от силы удара
-      cueHitSound.setVolume(strikePower * 0.8 + 0.2); // от 20% до 100% громкости
-      // Настраиваем скорость воспроизведения для разных сил удара
-      cueHitSound.rate(strikePower * 0.5 + 0.75); // от 75% до 125% скорости
-      cueHitSound.play();
-    }
-
     strikeDir = { x: dx, y: dy };
     const offset = offsetDistance;
 
@@ -260,37 +246,29 @@ let showAimGuide = false;
 
 function hitCueBallFromAngle() {
   if (isTwoPlayerMode) {
-    timers[currentPlayer - 1] = 30;
-    document.getElementById(`timer${currentPlayer}`).textContent = '30';
-  }
-  
-  if (!cueBall || cueBall.body.speed > 0.1) return;
+  timers[currentPlayer - 1] = 30;
+  document.getElementById(`timer${currentPlayer}`).textContent = '30';
+}
+   if (!cueBall || cueBall.body.speed>0.1) return;
 
-  const pos = cueBall.body.position;
-  const ballRadius = cueBall.diameter / 2;
+   const pos= cueBall.body.position;
+   const ballRadius= cueBall.diameter/2;
 
-  let dx = Math.cos(cueAngle);
-  let dy = Math.sin(cueAngle);
+   let dx= Math.cos(cueAngle);
+   let dy= Math.sin(cueAngle);
 
-  // Воспроизводим звук удара (средняя громкость и скорость)
-  if (cueHitSound) {
-    cueHitSound.setVolume(0.7);
-    cueHitSound.rate(1.0);
-    cueHitSound.play();
-  }
+   const baseForce=0.02; 
+   
+   // Точка приложения силы с учетом смещения
+   const forcePos={
+     x: pos.x + dx*(ballRadius*0.8)+(-dx)*offsetDistance,
+     y: pos.y + dy*(ballRadius*0.8)+(-dy)*offsetDistance
+   };
 
-  const baseForce = 0.02; 
-  
-  // Точка приложения силы с учетом смещения
-  const forcePos = {
-    x: pos.x + dx * (ballRadius * 0.8) + (-dx) * offsetDistance,
-    y: pos.y + dy * (ballRadius * 0.8) + (-dy) * offsetDistance
-  };
+   const force={
+     x: -dx*baseForce,
+     y: -dy*baseForce
+   };
 
-  const force = {
-    x: -dx * baseForce,
-    y: -dy * baseForce
-  };
-
-  Matter.Body.applyForce(cueBall.body, forcePos, force);
+   Matter.Body.applyForce(cueBall.body ,forcePos ,force );
 }
