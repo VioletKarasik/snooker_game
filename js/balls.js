@@ -366,9 +366,6 @@ function applyPenalty() {
   penaltyAlpha = 255;
   penaltyTimer = penaltyDuration;
 }
-
-
-
 function drawPenalty() {
   if (penaltyTimer > 0) {
     penaltyTimer--;
@@ -379,15 +376,15 @@ function drawPenalty() {
     push();
     textAlign(CENTER, CENTER);
     textSize(48);
+    textFont('Tahoma'); // <-- ВСТАВИЛИ ШРИФТ TAHOMA
     fill(255, 0, 0, penaltyAlpha);
     stroke(255, 0, 0, penaltyAlpha);
     strokeWeight(2);
-    
-    // Рисуем текст штрафа в центре холста или в удобном месте
     text(penaltyText, width / 2, height / 2);
     pop();
   }
 }
+
 function addScoreForBall(color) {
   if (color === COLORS.cue) return; // Биток не даёт очков
   
@@ -413,6 +410,7 @@ function addScoreForBall(color) {
     updateScoreDisplay();
   }
 }
+let allRedsCleared = false;
 
 function checkColoredBallsPotted() {
   for (let ball of [...balls]) {
@@ -421,8 +419,6 @@ function checkColoredBallsPotted() {
     if (checkBallInPocket(ball)) {
       // Удаляем шар из мира
       Matter.World.remove(engine.world, ball.body);
-
-      // Удаляем из массива
       balls = balls.filter(b => b !== ball);
 
       // Добавляем очки
@@ -430,12 +426,44 @@ function checkColoredBallsPotted() {
 
       if (ball.color === COLORS.red) {
         console.log(`Red ball potted and removed.`);
+
+        // Проверяем, остались ли ещё красные шары
+        const redsLeft = balls.some(b => b.color === COLORS.red);
+        if (!redsLeft) {
+          allRedsCleared = true;
+          console.log("All reds cleared! Now color balls can be removed.");
+        }
+
       } else {
-        // Цветные респавнятся
-        let respottedBall = new Ball(ball.originalX, ball.originalY, ballDiameter, ball.color);
-        balls.push(respottedBall);
-        console.log(`Colored ball (${ball.color}) potted and re-spotted.`);
+        if (!allRedsCleared) {
+          // Респавним цветной, только если красные ещё остались
+          let respottedBall = new Ball(ball.originalX, ball.originalY, ballDiameter, ball.color);
+          balls.push(respottedBall);
+          console.log(`Colored ball (${ball.color}) potted and re-spotted.`);
+        } else {
+          console.log(`Colored ball (${ball.color}) potted and removed.`);
+        }
       }
     }
   }
+
+  // Если остался только биток — конец игры
+  if (balls.length === 1 && balls[0].color === COLORS.cue) {
+    showWinMessage();
+  }
+}
+let gameOver = false;
+
+function showWinMessage() {
+  gameOver = true; // включаем флаг завершения игры
+
+  push();
+  textAlign(CENTER, CENTER);
+  textSize(48);
+  textFont('Tahoma');
+  fill(0, 255, 0);
+  stroke(0);
+  strokeWeight(3);
+  text("Congratulations! You cleared the table!", width / 2, height / 2);
+  pop();
 }

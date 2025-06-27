@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Snooker Game</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.sound.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
@@ -17,6 +18,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=LXGW+Marker+Gothic&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
+
   <style>
     :root {
       --primary-color: #1f1f1f;
@@ -373,6 +379,7 @@
   position: relative;
   overflow: hidden;
   z-index: 1;
+  display: none;
 }
 .two-player-btn::before {
   content: '';
@@ -585,6 +592,8 @@
       document.getElementById("welcome-screen").style.display = "none";
       document.getElementById("info-panel").style.display = "block";
       document.querySelector('.reset-btn-container').style.display = 'block';
+      document.querySelector('.two-player-btn').style.display = 'inline-block';
+
       // Показываем кнопку управления
       const toggleBtn = document.getElementById("toggleControls");
       toggleBtn.style.display = "flex";

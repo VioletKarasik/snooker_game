@@ -138,7 +138,8 @@ function resetGame() {
   
   // Update score display
   updateScoreDisplay();
-  
+  allRedsCleared = false;
+  gameOver = false;
   console.log("Game has been reset");
 }
 function startTwoPlayerGame() {
