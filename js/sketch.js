@@ -1,9 +1,9 @@
 let canvas;
-let currentTurnScore = 0; // Очки текущего подхода
+let score = 0;
 let resetButton;
 let isTwoPlayerMode = false;
 let currentPlayer = 1;
-let playerScores = [0, 0]; // Общие очки игроков
+let scores = [0, 0];
 let timers = [30, 30];
 let timerInterval = null;
 
@@ -35,31 +35,29 @@ function draw() {
   checkCueBallPotted(); 
   checkColoredBallsPotted();
 
-  // Удаление шаров в лузы и подсчёт очков
+  // Удаление шаров в лузы и подсчёт очков (если есть не учтённые случаи)
   for (let i = balls.length - 1; i >= 0; i--) {
     if (checkBallInPocket(balls[i])) {
-      const points = getPointsForColor(balls[i].color);
       Matter.World.remove(engine.world, balls[i].body);
       balls.splice(i, 1);
-      
-      // Добавляем очки текущему игроку
-      addScoreForCurrentPlayer(points);
+      // Если вдруг сюда попадёт шар — добавим очки (на всякий случай)
+      addScoreForBall(balls[i].color);
     }
   }
+drawPenalty();
 }
-function addScoreForCurrentPlayer(points) {
-  currentTurnScore += points;
-  updateScoreDisplay();
-  
-  if (isTwoPlayerMode) {
-    // Обновляем отображение текущих очков игрока
-    document.getElementById(`current${currentPlayer}`).textContent = currentTurnScore;
-  }
-}
+
+
 function updateScoreDisplay() {
   const scoreValueEl = document.getElementById("score-value");
   if (scoreValueEl) {
-    scoreValueEl.textContent = currentTurnScore;
+    if (!isTwoPlayerMode) {
+      // В одиночном режиме просто показываем общий score
+      scoreValueEl.textContent = score;
+    } else {
+      // В двух игроков можно показывать текущие очки текущего игрока здесь тоже (опционально)
+      scoreValueEl.textContent = score; 
+    }
   }
 }
 
@@ -111,6 +109,9 @@ function keyPressed() {
   }
 }
 function resetGame() {
+  // Play a subtle sound effect if you have one
+  // playSound('reset');
+  
   // Fade out animation
   document.getElementById('resetGameBtn').style.opacity = '0.5';
   setTimeout(() => {
@@ -122,7 +123,7 @@ function resetGame() {
   
   // Reset game state
   balls = [];
-  currentTurnScore = 0;
+  score = 0;
   cueBall = null;
   cueBallPlaced = false;
   isAiming = false;
@@ -142,20 +143,19 @@ function resetGame() {
 }
 function startTwoPlayerGame() {
   isTwoPlayerMode = true;
-  playerScores = [0, 0];
-  currentTurnScore = 0;
+  scores = [0, 0];
   timers = [30, 30];
   currentPlayer = 1;
+  resetGame();
 
-  // Обновляем UI
   document.getElementById('score1').textContent = '0';
   document.getElementById('score2').textContent = '0';
   document.getElementById('timer1').textContent = '30';
   document.getElementById('timer2').textContent = '30';
-  updateScoreDisplay();
   
   document.getElementById('scoreboard').style.display = 'flex';
   updateActivePlayerUI();
+  updateScoreDisplay(); // обновить отображение очков
   startTimer();
 }
 
@@ -163,7 +163,6 @@ function updateActivePlayerUI() {
   document.getElementById('player1').classList.toggle('active', currentPlayer === 1);
   document.getElementById('player2').classList.toggle('active', currentPlayer === 2);
 }
-
 function startTimer() {
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
@@ -171,22 +170,25 @@ function startTimer() {
     document.getElementById(`timer${currentPlayer}`).textContent = timers[currentPlayer - 1];
     
     if (timers[currentPlayer - 1] <= 0) {
-      // Таймер истёк — штраф и смена игрока
+      // Таймер истёк — штраф
+      scores[currentPlayer - 1] = Math.max(0, scores[currentPlayer - 1] - 1);
+      document.getElementById(`score${currentPlayer}`).textContent = scores[currentPlayer - 1];
       switchPlayer();
     }
   }, 1000);
 }
-
 function switchPlayer() {
-  // Добавляем текущие очки к общему счёту игрока
-  playerScores[currentPlayer - 1] += currentTurnScore;
-   document.getElementById(`current${currentPlayer}`).textContent = currentTurnScore;
+  // При смене игрока добавляем текущие очки к общему счёту игрока
+  scores[currentPlayer - 1] += score;
+  document.getElementById(`score${currentPlayer}`).textContent = scores[currentPlayer - 1];
   
-  // Сбрасываем текущие очки
-  currentTurnScore = 0;
-  updateScoreDisplay();
+  // Сбрасываем текущие очки (подход)
+  score = 0;
+  document.getElementById(`current1`).textContent = 0;
+document.getElementById(`current2`).textContent = 0;
+  // Обновляем отображение текущих очков текущего игрока
+  document.getElementById(`current${currentPlayer}`).textContent = score;
   
-  // Обновляем таймер
   clearInterval(timerInterval);
   timers[currentPlayer - 1] = 30;
   document.getElementById(`timer${currentPlayer}`).textContent = '30';
@@ -201,5 +203,37 @@ function resetCurrentPlayerTimer() {
   if (isTwoPlayerMode) {
     timers[currentPlayer - 1] = 30;
     document.getElementById(`timer${currentPlayer}`).textContent = '30';
+  }
+}
+function toggleTwoPlayerMode() {
+  if (isTwoPlayerMode) {
+    // Выключаем двух игроков — возвращаемся в одиночный режим
+    isTwoPlayerMode = false;
+    score = 0;
+    scores = [0, 0];
+    currentPlayer = 1;
+document.getElementById(`current1`).textContent = 0;
+document.getElementById(`current2`).textContent = 0;
+    // Скрываем панель двух игроков (если есть)
+    document.getElementById('scoreboard').style.display = 'none';
+
+    // Сбрасываем таймеры, если нужно
+    clearInterval(timerInterval);
+
+    // Обновляем отображение очков для одиночного режима
+    updateScoreDisplay();
+
+    // Меняем текст кнопки
+    document.getElementById('toggleTwoPlayerBtn').textContent = 'Two Player Mode';
+
+    // Любая дополнительная очистка или сброс игры
+    resetGame();
+
+  } else {
+    // Включаем двух игроков
+    startTwoPlayerGame();
+
+    // Меняем текст кнопки
+    document.getElementById('toggleTwoPlayerBtn').textContent = 'Single Player Mode';
   }
 }

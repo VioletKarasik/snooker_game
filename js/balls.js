@@ -2,6 +2,10 @@ let balls = [];
 let ballDiameter;
 let cueBallPlaced = false;
 let lastCollisions = {};
+let penaltyText = "";        // Текст штрафа (например "-1")
+let penaltyAlpha = 0;        // Прозрачность текста (0..255)
+let penaltyTimer = 0;        // Таймер для отслеживания показа штрафа
+const penaltyDuration = 60;  // Длительность отображения штрафа (в кадрах, 60 ≈ 1 секунда)
 
 const COLORS = {
   cue: 'white',
@@ -333,24 +337,81 @@ function checkCueBallPotted() {
     // Сбрасываем флаг и ссылку
     cueBall = null;
     cueBallPlaced = false;
-
+    
     console.log("Cue ball potted. Place it again in the D zone.");
+    
+    // Применяем штраф
+    applyPenalty();
+  }
+}
+
+function applyPenalty() {
+  if (isTwoPlayerMode) {
+    // Вычитаем штраф из общего счёта игрока
+    scores[currentPlayer] = Math.max(0, scores[currentPlayer] - 1);
+    
+    // Если у тебя есть текущий счёт за подход, можно тоже сбросить или уменьшить:
+    score = Math.max(0, score - 1);
+    
+    // Обновляем UI
+    document.getElementById('score1').textContent = scores[0];
+    document.getElementById('score2').textContent = scores[1];
+    document.getElementById(`current${currentPlayer}`).textContent = score;
+  } else {
+    score = Math.max(0, score - 1);
+    updateScoreDisplay();
+  }
+
+  penaltyText = "-1 penalty!";
+  penaltyAlpha = 255;
+  penaltyTimer = penaltyDuration;
+}
+
+
+
+function drawPenalty() {
+  if (penaltyTimer > 0) {
+    penaltyTimer--;
+
+    // Плавное уменьшение прозрачности
+    penaltyAlpha = map(penaltyTimer, 0, penaltyDuration, 0, 255);
+
+    push();
+    textAlign(CENTER, CENTER);
+    textSize(48);
+    fill(255, 0, 0, penaltyAlpha);
+    stroke(255, 0, 0, penaltyAlpha);
+    strokeWeight(2);
+    
+    // Рисуем текст штрафа в центре холста или в удобном месте
+    text(penaltyText, width / 2, height / 2);
+    pop();
   }
 }
 function addScoreForBall(color) {
   if (color === COLORS.cue) return; // Биток не даёт очков
+  
+  let points = 0;
+  
   if (color === COLORS.red) {
-    score += BALL_SCORES.red;
+    points = BALL_SCORES.red;
   } else {
-    // Цветные
     for (let key in COLORS) {
       if (COLORS[key] === color && BALL_SCORES[key]) {
-        score += BALL_SCORES[key];
+        points = BALL_SCORES[key];
         break;
       }
     }
   }
-  updateScoreDisplay();
+  
+  if (isTwoPlayerMode) {
+    score += points; // Текущие очки за подход
+    // Обновляем отображение текущих очков для текущего игрока
+    document.getElementById(`current${currentPlayer}`).textContent = score;
+  } else {
+    score += points;
+    updateScoreDisplay();
+  }
 }
 
 function checkColoredBallsPotted() {
