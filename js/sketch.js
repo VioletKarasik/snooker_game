@@ -1,3 +1,4 @@
+// Global game variables
 let canvas;
 let score = 0;
 let resetButton;
@@ -6,24 +7,28 @@ let currentPlayer = 1;
 let scores = [0, 0];
 let timers = [30, 30];
 let timerInterval = null;
+let gameStarted = false;
 
 function setup() {
+  // Create canvas and set drawing modes
   canvas = createCanvas(1200, 850);
   canvas.parent(document.body);
-
   rectMode(CORNER);
   ellipseMode(CENTER);
 
+  // Initialize game systems
   setupPhysics();
   setupGame();
-  // Проверка аудио
-  console.log('Проверка аудиосистемы:');
+  
+  // Audio system check
+  console.log('Audio system check:');
   console.log('- loadSound available:', typeof loadSound !== 'undefined');
   console.log('- AudioContext:', typeof AudioContext !== 'undefined' ? 'supported' : 'not supported');
-  loadCueSounds(); // Добавьте эту строку
+  loadCueSounds();
 }
 
 function setupGame() {
+  // Set up game elements
   setupTable(width, height);
   setupBalls(tableX, tableY, tableWidth, tableHeight);
   setupTableBorders(tableX, tableY, tableWidth, tableHeight);
@@ -31,96 +36,96 @@ function setupGame() {
 }
 
 function draw() {
+  // Main game loop
   Engine.update(engine);
   clear();
 
+  // Render game elements
   drawTable();
   drawBalls();
   drawCue();
-  checkCueBallPotted(); 
+  
+  // Game logic checks
+  checkCueBallPotted();
   checkColoredBallsPotted();
 
-  // Удаление шаров в лузы и подсчёт очков (если есть не учтённые случаи)
+  // Check for balls in pockets
   for (let i = balls.length - 1; i >= 0; i--) {
     if (checkBallInPocket(balls[i])) {
       Matter.World.remove(engine.world, balls[i].body);
       balls.splice(i, 1);
-      // Если вдруг сюда попадёт шар — добавим очки (на всякий случай)
       addScoreForBall(balls[i].color);
     }
   }
-drawPenalty();
+  
+  drawPenalty();
 }
-let gameStarted = false;
     
-    function startGame() {
-      document.getElementById("welcome-screen").style.display = "none";
-      document.getElementById("info-panel").style.display = "block";
-      document.querySelector('.reset-btn-container').style.display = 'block';
-      document.querySelector('.two-player-btn').style.display = 'inline-block';
+function startGame() {
+  // Show/hide UI elements when game starts
+  document.getElementById("welcome-screen").style.display = "none";
+  document.getElementById("info-panel").style.display = "block";
+  document.querySelector('.reset-btn-container').style.display = 'block';
+  document.querySelector('.two-player-btn').style.display = 'inline-block';
 
-      // Показываем кнопку управления
-      const toggleBtn = document.getElementById("toggleControls");
-      toggleBtn.style.display = "flex";
-      
-      gameStarted = true;
-      console.log("Game started!");
-    }
+  // Show controls toggle button
+  const toggleBtn = document.getElementById("toggleControls");
+  toggleBtn.style.display = "flex";
+  
+  gameStarted = true;
+  console.log("Game started!");
+}
 
-    document.getElementById('toggleControls').addEventListener('click', function() {
-      const controlsPanel = document.getElementById('controls-panel');
-      if (controlsPanel) {
-        controlsPanel.classList.toggle('visible');
-        this.textContent = controlsPanel.classList.contains('visible') ? '✕' : '⚜';
-      }
-    });
+// Toggle controls panel visibility
+document.getElementById('toggleControls').addEventListener('click', function() {
+  const controlsPanel = document.getElementById('controls-panel');
+  if (controlsPanel) {
+    controlsPanel.classList.toggle('visible');
+    this.textContent = controlsPanel.classList.contains('visible') ? '✕' : '⚜';
+  }
+});
 
 function updateScoreDisplay() {
+  // Update score display based on game mode
   const scoreValueEl = document.getElementById("score-value");
   if (scoreValueEl) {
-    if (!isTwoPlayerMode) {
-      // В одиночном режиме просто показываем общий score
-      scoreValueEl.textContent = score;
-    } else {
-      // В двух игроков можно показывать текущие очки текущего игрока здесь тоже (опционально)
-      scoreValueEl.textContent = score; 
-    }
+    scoreValueEl.textContent = score;
   }
 }
 
 function keyPressed() {
+  // Debug keys for different ball setups
   if (key === '1') {
     clearAllBalls();
     setupBalls(tableX, tableY, tableWidth, tableHeight);
     cueBall = null;
     cueBallPlaced = false;
-
   } else if (key === '2') {
     clearAllBalls();
     setupRandomRedBallsOnly();
     cueBall = null;
     cueBallPlaced = false;
-
   } else if (key === '3') {
     clearAllBalls();
     setupRandomAllBalls();
     cueBall = null;
     cueBallPlaced = false;
   }
-  // R — сброс прицеливания
+  
+  // Reset aiming
   if (key === 'r' || key === 'R') {
     isAiming = false;
     cueStartPos = null;
     return;
   }
 
-  // K — переключить режим управления
+  // Toggle aim guide visibility
   if (key === 'k' || key === 'K') {
     showAimGuide = !showAimGuide;
     return;
   }
 
-  // Управление в режиме клавиатуры
+  // Keyboard controls for aiming
   if (useKeyboardAim) {
     switch (keyCode) {
       case LEFT_ARROW:
@@ -135,17 +140,15 @@ function keyPressed() {
     }
   }
 }
+
 function resetGame() {
-  // Play a subtle sound effect if you have one
-  // playSound('reset');
-  
-  // Fade out animation
+  // Reset animation effect
   document.getElementById('resetGameBtn').style.opacity = '0.5';
   setTimeout(() => {
     document.getElementById('resetGameBtn').style.opacity = '1';
   }, 300);
 
-  // Clear the world
+  // Clear physics world
   Matter.Composite.clear(engine.world, false);
   
   // Reset game state
@@ -157,25 +160,28 @@ function resetGame() {
   cueStartPos = null;
   strikeAnimationInProgress = false;
   
-  // Recreate the game elements
+  // Reinitialize game elements
   setupTable(width, height);
   setupBalls(tableX, tableY, tableWidth, tableHeight);
   setupTableBorders(tableX, tableY, tableWidth, tableHeight);
   setupCollisionDetection();
   
-  // Update score display
+  // Update UI
   updateScoreDisplay();
   allRedsCleared = false;
   gameOver = false;
   console.log("Game has been reset");
 }
+
 function startTwoPlayerGame() {
+  // Initialize two-player mode
   isTwoPlayerMode = true;
   scores = [0, 0];
   timers = [30, 30];
   currentPlayer = 1;
   resetGame();
 
+  // Update UI elements
   document.getElementById('score1').textContent = '0';
   document.getElementById('score2').textContent = '0';
   document.getElementById('timer1').textContent = '30';
@@ -183,85 +189,80 @@ function startTwoPlayerGame() {
   
   document.getElementById('scoreboard').style.display = 'flex';
   updateActivePlayerUI();
-  updateScoreDisplay(); // обновить отображение очков
+  updateScoreDisplay();
   startTimer();
 }
 
 function updateActivePlayerUI() {
+  // Highlight active player in UI
   document.getElementById('player1').classList.toggle('active', currentPlayer === 1);
   document.getElementById('player2').classList.toggle('active', currentPlayer === 2);
 }
+
 function startTimer() {
+  // Start countdown timer for current player
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     timers[currentPlayer - 1]--;
     document.getElementById(`timer${currentPlayer}`).textContent = timers[currentPlayer - 1];
     
     if (timers[currentPlayer - 1] <= 0) {
-      // Таймер истёк — штраф
+      // Time penalty when timer expires
       scores[currentPlayer - 1] = Math.max(0, scores[currentPlayer - 1] - 1);
       document.getElementById(`score${currentPlayer}`).textContent = scores[currentPlayer - 1];
       switchPlayer();
     }
   }, 1000);
 }
+
 function switchPlayer() {
-  // При смене игрока добавляем текущие очки к общему счёту игрока
+  // Handle player switch logic
   scores[currentPlayer - 1] += score;
   document.getElementById(`score${currentPlayer}`).textContent = scores[currentPlayer - 1];
   
-  // Сбрасываем текущие очки (подход)
+  // Reset current break score
   score = 0;
   document.getElementById(`current1`).textContent = 0;
-document.getElementById(`current2`).textContent = 0;
-  // Обновляем отображение текущих очков текущего игрока
+  document.getElementById(`current2`).textContent = 0;
   document.getElementById(`current${currentPlayer}`).textContent = score;
   
+  // Reset timer for previous player
   clearInterval(timerInterval);
   timers[currentPlayer - 1] = 30;
   document.getElementById(`timer${currentPlayer}`).textContent = '30';
 
-  // Меняем игрока
+  // Switch to other player
   currentPlayer = currentPlayer === 1 ? 2 : 1;
   updateActivePlayerUI();
   startTimer();
 }
 
 function resetCurrentPlayerTimer() {
+  // Reset timer for current player
   if (isTwoPlayerMode) {
     timers[currentPlayer - 1] = 30;
     document.getElementById(`timer${currentPlayer}`).textContent = '30';
   }
 }
+
 function toggleTwoPlayerMode() {
+  // Toggle between single and two-player modes
   if (isTwoPlayerMode) {
-    // Выключаем двух игроков — возвращаемся в одиночный режим
+    // Switch to single player
     isTwoPlayerMode = false;
     score = 0;
     scores = [0, 0];
     currentPlayer = 1;
-document.getElementById(`current1`).textContent = 0;
-document.getElementById(`current2`).textContent = 0;
-    // Скрываем панель двух игроков (если есть)
+    document.getElementById(`current1`).textContent = 0;
+    document.getElementById(`current2`).textContent = 0;
     document.getElementById('scoreboard').style.display = 'none';
-
-    // Сбрасываем таймеры, если нужно
     clearInterval(timerInterval);
-
-    // Обновляем отображение очков для одиночного режима
     updateScoreDisplay();
-
-    // Меняем текст кнопки
     document.getElementById('toggleTwoPlayerBtn').textContent = 'Two Player Mode';
-
-    // Любая дополнительная очистка или сброс игры
     resetGame();
-
   } else {
-    // Включаем двух игроков
+    // Switch to two-player mode
     startTwoPlayerGame();
-
-    // Меняем текст кнопки
     document.getElementById('toggleTwoPlayerBtn').textContent = 'Single Player Mode';
   }
 }

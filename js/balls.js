@@ -2,11 +2,14 @@ let balls = [];
 let ballDiameter;
 let cueBallPlaced = false;
 let lastCollisions = {};
-let penaltyText = "";        // Текст штрафа (например "-1")
-let penaltyAlpha = 0;        // Прозрачность текста (0..255)
-let penaltyTimer = 0;        // Таймер для отслеживания показа штрафа
-const penaltyDuration = 60;  // Длительность отображения штрафа (в кадрах, 60 ≈ 1 секунда)
+let penaltyText = "";        // Text for penalty display (e.g. "-1")
+let penaltyAlpha = 0;        // Transparency of penalty text (0..255)
+let penaltyTimer = 0;        // Timer for how long penalty is shown
+let gameOver = false;
+let allRedsCleared = false;
+const penaltyDuration = 60;  // Duration for showing penalty text (frames, 60 ≈ 1 second)
 
+// Ball colors
 const COLORS = {
   cue: 'white',
   red: '#bd2020',
@@ -18,6 +21,7 @@ const COLORS = {
   black: '#262626'
 };
 
+// Score values for each ball
 const BALL_SCORES = {
   red: 1,
   yellow: 2,
@@ -28,7 +32,7 @@ const BALL_SCORES = {
   black: 7
 };
 
-
+// Ball class for physics and rendering
 class Ball {
   constructor(x, y, diameter, color) {
     this.diameter = diameter;
@@ -45,14 +49,14 @@ class Ball {
     this.body.color = color;
     Matter.World.add(engine.world, this.body);
   }
-
+  // Reset ball to its original position
   resetPosition() {
     Matter.Body.setPosition(this.body, { x: this.originalX, y: this.originalY });
     Matter.Body.setVelocity(this.body, { x: 0, y: 0 });
     Matter.Body.setAngularVelocity(this.body, 0);
     Matter.Body.setAngle(this.body, 0);
   }
-
+  // Render the ball
   show() {
     const pos = this.body.position;
     const r = this.diameter / 2;
@@ -72,22 +76,22 @@ class Ball {
   }
 }
 
+// Set up collision detection for cue ball
 function setupCollisionDetection() {
-  // Обработчик столкновений Matter.js
   Matter.Events.on(engine, 'collisionStart', function(event) {
     const pairs = event.pairs;
     
     for (let i = 0; i < pairs.length; i++) {
       const pair = pairs[i];
       
-      // Проверяем, участвует ли в столкновении биток
+      // Check if the cue ball is involved in the collision
       const cueBallInvolved = 
         (pair.bodyA.label === 'ball' && pair.bodyA.color === COLORS.cue) ||
         (pair.bodyB.label === 'ball' && pair.bodyB.color === COLORS.cue);
       
       if (!cueBallInvolved) continue;
       
-      // Определяем какой объект биток, а какой другой
+      // Determine the type of collision
       let cueBody, otherBody;
       if (pair.bodyA.color === COLORS.cue) {
         cueBody = pair.bodyA;
@@ -97,25 +101,24 @@ function setupCollisionDetection() {
         otherBody = pair.bodyA;
       }
       
-      // Определяем тип столкновения
+      // Type of collision
       let collisionType;
       
       if (otherBody.label === 'ball') {
-        // Столкновение с другим шаром
+        // With another ball
         if (otherBody.color === COLORS.red) {
           collisionType = 'cue-red';
         } else {
           collisionType = 'cue-color';
         }
       } else {
-        // Столкновение с бортом
+        // With cushion
         collisionType = 'cue-cushion';
       }
       
-      // Проверяем, не было ли уже такого столкновения недавно
+      // Avoid duplicate collision messages
       const collisionKey = `${cueBody.id}-${otherBody.id}`;
       if (!lastCollisions[collisionKey] || Date.now() - lastCollisions[collisionKey] > 500) {
-        // Показываем сообщение о столкновении
         showCollisionMessage(collisionType);
         lastCollisions[collisionKey] = Date.now();
       }
@@ -123,6 +126,7 @@ function setupCollisionDetection() {
   });
 }
 
+// Display collision messages
 function showCollisionMessage(type) {
   let message = '';
   
@@ -140,23 +144,20 @@ function showCollisionMessage(type) {
       message = 'Cue ball collision detected!';
   }
   
-  // Выводим сообщение в консоль (можно заменить на отображение в интерфейсе)
   console.log(message);
   
-  // Если у вас есть элемент для отображения сообщений:
   const messageElement = document.getElementById('collision-message');
   if (messageElement) {
     messageElement.textContent = message;
     messageElement.style.display = 'block';
     
-    // Скрываем сообщение через 2 секунды
     setTimeout(() => {
       messageElement.style.display = 'none';
     }, 2000);
   }
 }
 
-
+// Remove all balls from the table
 function clearAllBalls() {
   for (let ball of balls) {
     Matter.World.remove(engine.world, ball.body);
@@ -164,6 +165,7 @@ function clearAllBalls() {
   balls = [];
 }
 
+// Set up all balls on the table
 function setupBalls(tableX, tableY, tableWidth, tableHeight) {
   ballDiameter = tableWidth / 36;
   clearAllBalls();
@@ -174,6 +176,8 @@ function setupBalls(tableX, tableY, tableWidth, tableHeight) {
 
   setupColoredBalls(tableX, tableY, tableWidth, tableHeight);
 }
+
+// Check if a position is within the D zone
 function isInDZone(x, y) {
   let dRadius = tableWidth * 0.10;
   let dCenterX = tableX + tableWidth * 0.25;
@@ -182,14 +186,13 @@ function isInDZone(x, y) {
   let dx = x - dCenterX;
   let dy = y - dCenterY;
 
-  // Проверка: внутри круга и левее центра (левая полусфера)
   if (dx <= 0 && dx * dx + dy * dy <= dRadius * dRadius) {
     return true;
   }
   return false;
 }
 
-
+// Arrange red balls in triangle rack
 function setupRedBalls(rackX, rackY) {
   const rows = 5;
   const spacingY = ballDiameter;
@@ -207,6 +210,7 @@ function setupRedBalls(rackX, rackY) {
   }
 }
 
+// Place colored balls in their designated positions
 function setupColoredBalls(tableX, tableY, tableWidth, tableHeight) {
   const bd = ballDiameter;
   const halfH = tableY + tableHeight / 2;
@@ -221,6 +225,7 @@ function setupColoredBalls(tableX, tableY, tableWidth, tableHeight) {
   balls.push(new Ball(tableX + tableWidth - bd * 3, halfH, bd, COLORS.black));
 }
 
+// Check if a ball overlaps any existing one
 function isOverlapping(x, y, radius) {
   for (let ball of balls) {
     const dx = ball.body.position.x - x;
@@ -231,6 +236,7 @@ function isOverlapping(x, y, radius) {
   return false;
 }
 
+// Place 15 red balls randomly
 function setupRandomRedBallsOnly() {
   clearAllBalls();
   ballDiameter = tableWidth / 36;
@@ -247,12 +253,13 @@ function setupRandomRedBallsOnly() {
 
 }
 
+// Place all balls randomly
 function setupRandomAllBalls() {
   clearAllBalls();
   ballDiameter = tableWidth / 36;
 
   let attempts = 0;
-  // Красные
+  // Red
   while (balls.length < 15 && attempts < 1000) {
     let x = random(tableX + ballDiameter, tableX + tableWidth - ballDiameter);
     let y = random(tableY + ballDiameter, tableY + tableHeight - ballDiameter);
@@ -262,7 +269,7 @@ function setupRandomAllBalls() {
     attempts++;
   }
 
-  // Цветные
+  // Colored
   const colorKeys = ['yellow', 'green', 'brown', 'blue', 'pink', 'black'];
   for (let color of colorKeys) {
     let placed = false;
@@ -280,23 +287,24 @@ function setupRandomAllBalls() {
 
 }
 
+// Place cue ball when mouse is pressed
 function mousePressed() {
-  // Если биток ещё не размещён, размещаем биток по месту клика
   if (!cueBallPlaced) {
-    // Создаём биток там, где кликнули
+    // Draw cue ball where clicked
     cueBall = new Ball(mouseX, mouseY, ballDiameter, COLORS.cue);
     balls.push(cueBall);
     cueBallPlaced = true;
   }
 }
 
-
+// Draw all balls
 function drawBalls() {
   for (let ball of balls) {
     ball.show();
   }
 }
 
+// Check if any ball is still moving
 function ballsMoving() {
   for (let ball of balls) {
     const v = ball.body.velocity;
@@ -305,6 +313,7 @@ function ballsMoving() {
   return false;
 }
 
+// Reset all balls to original positions
 function resetAllBalls() {
   if (ballsMoving()) return;
   for (let ball of balls) {
@@ -312,8 +321,9 @@ function resetAllBalls() {
   }
 }
 
+// Check if a ball is in a pocket
 function checkBallInPocket(ball) {
-  const pockets = getPocketPositions(); // предполагается, что она определена
+  const pockets = getPocketPositions();
   for (let pocket of pockets) {
     const dx = ball.body.position.x - pocket.x;
     const dy = ball.body.position.y - pocket.y;
@@ -324,36 +334,32 @@ function checkBallInPocket(ball) {
   }
   return false;
 }
+
+// Check if cue ball was potted
 function checkCueBallPotted() {
   if (!cueBall) return;
 
   if (checkBallInPocket(cueBall)) {
-    // Удаляем биток из физического мира
     Matter.World.remove(engine.world, cueBall.body);
 
-    // Удаляем из массива шаров
     balls = balls.filter(ball => ball !== cueBall);
 
-    // Сбрасываем флаг и ссылку
     cueBall = null;
     cueBallPlaced = false;
     
     console.log("Cue ball potted. Place it again in the D zone.");
     
-    // Применяем штраф
     applyPenalty();
   }
 }
 
+// Apply penalty for fouls
 function applyPenalty() {
   if (isTwoPlayerMode) {
-    // Вычитаем штраф из общего счёта игрока
     scores[currentPlayer] = Math.max(0, scores[currentPlayer] - 1);
     
-    // Если у тебя есть текущий счёт за подход, можно тоже сбросить или уменьшить:
     score = Math.max(0, score - 1);
     
-    // Обновляем UI
     document.getElementById('score1').textContent = scores[0];
     document.getElementById('score2').textContent = scores[1];
     document.getElementById(`current${currentPlayer}`).textContent = score;
@@ -366,17 +372,18 @@ function applyPenalty() {
   penaltyAlpha = 255;
   penaltyTimer = penaltyDuration;
 }
+
+// Draw the penalty text on screen
 function drawPenalty() {
   if (penaltyTimer > 0) {
     penaltyTimer--;
 
-    // Плавное уменьшение прозрачности
     penaltyAlpha = map(penaltyTimer, 0, penaltyDuration, 0, 255);
 
     push();
     textAlign(CENTER, CENTER);
     textSize(48);
-    textFont('Tahoma'); // <-- ВСТАВИЛИ ШРИФТ TAHOMA
+    textFont('Tahoma'); 
     fill(255, 0, 0, penaltyAlpha);
     stroke(255, 0, 0, penaltyAlpha);
     strokeWeight(2);
@@ -385,8 +392,9 @@ function drawPenalty() {
   }
 }
 
+// Add score when a ball is potted
 function addScoreForBall(color) {
-  if (color === COLORS.cue) return; // Биток не даёт очков
+  if (color === COLORS.cue) return;
   
   let points = 0;
   
@@ -402,32 +410,28 @@ function addScoreForBall(color) {
   }
   
   if (isTwoPlayerMode) {
-    score += points; // Текущие очки за подход
-    // Обновляем отображение текущих очков для текущего игрока
+    score += points; 
     document.getElementById(`current${currentPlayer}`).textContent = score;
   } else {
     score += points;
     updateScoreDisplay();
   }
 }
-let allRedsCleared = false;
 
+// Check for potted colored or red balls
 function checkColoredBallsPotted() {
   for (let ball of [...balls]) {
     if (ball.color === COLORS.cue) continue;
 
     if (checkBallInPocket(ball)) {
-      // Удаляем шар из мира
       Matter.World.remove(engine.world, ball.body);
       balls = balls.filter(b => b !== ball);
 
-      // Добавляем очки
       addScoreForBall(ball.color);
 
       if (ball.color === COLORS.red) {
         console.log(`Red ball potted and removed.`);
 
-        // Проверяем, остались ли ещё красные шары
         const redsLeft = balls.some(b => b.color === COLORS.red);
         if (!redsLeft) {
           allRedsCleared = true;
@@ -436,7 +440,6 @@ function checkColoredBallsPotted() {
 
       } else {
         if (!allRedsCleared) {
-          // Респавним цветной, только если красные ещё остались
           let respottedBall = new Ball(ball.originalX, ball.originalY, ballDiameter, ball.color);
           balls.push(respottedBall);
           console.log(`Colored ball (${ball.color}) potted and re-spotted.`);
@@ -447,17 +450,16 @@ function checkColoredBallsPotted() {
     }
   }
 
-  // Если остался только биток — конец игры
   if (balls.length === 1 && balls[0].color === COLORS.cue) {
     showWinMessage();
   }
 }
-let gameOver = false;
 
+// Show win message is all balls are potted
 function showWinMessage() {
-  if (!gameOver) { // Проигрываем звук только при первом вызове
+  if (!gameOver) { 
     gameOver = true;
-    playWinSound(); // Воспроизводим звук победы
+    playWinSound(); 
   }
 
   push();

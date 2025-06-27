@@ -2,6 +2,8 @@
 
 let tableWidth, tableHeight, tableX, tableY, pocketDiameter;
 
+// Глобальная переменная для хранения буферов
+let woodGrainBuffer = null;
 function setupTable(canvasWidth, canvasHeight) {
   tableWidth = canvasWidth * 0.9;
   tableHeight = tableWidth / 2;
@@ -59,8 +61,6 @@ function drawTable() {
   drawTableMarkings();
 }
 
-// Глобальная переменная для хранения буферов
-let woodGrainBuffer = null;
 
 function createWoodGrainBuffers() {
   woodGrainBuffer = {
