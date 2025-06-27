@@ -1,6 +1,6 @@
 /**
  * This project implements a complete snooker simulation using p5.js for graphics rendering and Matter.js for physics. 
- * The game faithfully recreates professional snooker with accurate table dimensions (maintaining the standard 12ft × 6ft ratio), 
+ * My game faithfully recreates professional snooker with accurate table dimensions (maintaining the standard 12ft × 6ft ratio), 
  * realistic ball physics including proper friction and restitution values, and authentic gameplay rules.
 
 Key technical achievements include:
