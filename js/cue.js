@@ -19,6 +19,12 @@ let cueAngle = 0; // угол в радианах
 const offsetDistance = -15; // Расстояние смещения кий от шара (можно регулировать)
 
 function drawCue() {
+  if (!isNearTable(mouseX, mouseY)) {
+    // Сбрасываем состояние прицеливания, если курсор ушел со стола
+    isAiming = false;
+    cueStartPos = null;
+    return;
+  }
   if (!isNearTable(mouseX, mouseY)) return;
   if (!cueBall || (!isAiming && !useKeyboardAim && !strikeAnimationInProgress && !showAimGuide)) return;
 
@@ -188,6 +194,14 @@ function mousePressed() {
 }
 
 function mouseReleased() {
+  // Проверяем, что курсор находится над столом
+  if (!isNearTable(mouseX, mouseY)) {
+    // Сбрасываем состояние прицеливания, если курсор вне стола
+    isAiming = false;
+    cueStartPos = null;
+    return false;
+  }
+
   if (!gameStarted || !isAiming || !cueBall || cueBall.body.speed > 0.1) return false;
   
   // Отключаем прицеливание и скрываем кий при ударе

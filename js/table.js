@@ -284,7 +284,9 @@ function getPocketPositions() {
     { x: tableX + tableWidth, y: tableY + tableHeight },
   ];
 }
-function isNearTable(x, y, margin = 100) {
-  return x >= tableX - margin && x <= tableX + tableWidth + margin &&
-         y >= tableY - margin && y <= tableY + tableHeight + margin;
+function isNearTable(x, y, margin = 50) {
+  return x >= tableX - margin && 
+         x <= tableX + tableWidth + margin &&
+         y >= tableY - margin && 
+         y <= tableY + tableHeight + margin;
 }
