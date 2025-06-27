@@ -5,13 +5,13 @@ let lastCollisions = {};
 
 const COLORS = {
   cue: 'white',
-  red: 'red',
-  yellow: 'yellow',
-  green: 'green',
-  brown: 'brown',
-  blue: 'blue',
-  pink: 'plum',
-  black: 'black'
+  red: '#bd2020',
+  yellow: '#ccb31f',
+  green: '#0c9914',
+  brown: '#5f4734',
+  blue: '#2569ba',
+  pink: '#b94565',
+  black: '#262626'
 };
 
 const BALL_SCORES = {
