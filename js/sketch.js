@@ -1,3 +1,36 @@
+/**
+ * This project implements a complete snooker simulation using p5.js for graphics rendering and Matter.js for physics. 
+ * The game faithfully recreates professional snooker with accurate table dimensions (maintaining the standard 12ft × 6ft ratio), 
+ * realistic ball physics including proper friction and restitution values, and authentic gameplay rules.
+
+Key technical achievements include:
+
+   - Three distinct ball setup modes (classic formation, random reds only, and random all balls)
+   - Hybrid mouse/keyboard control system for precise cue aiming and shooting
+   - Comprehensive physics implementation covering ball collisions, cushion bouncing, and pocket detection
+   - Rule-enforcement system handling ball potting, fouls, and scoring
+   - Advanced two-player mode with score tracking and turn timers
+
+The implementation features:
+
+   - Visually detailed table with wood textures and dynamic lighting
+   - Accurate ball rendering with proper colors and markings
+   - Collision detection system identifying cue-ball impacts
+   - Audio feedback system for game events
+
+Technical highlights:
+
+   - Modular code structure separating physics, table, balls, and cue logic
+   - Custom algorithms for ball placement and collision handling
+   - Responsive UI with animated elements and visual feedback
+
+Setup requires only cloning the repository and opening index.html in a browser, with no additional dependencies. 
+The project demonstrates mastery of graphics programming principles while extending the basic requirements with innovative 
+features like competitive multiplayer mode and enhanced visual effects.
+
+Developed using Matter.js physics engine, p5.js graphics library, and Google Fonts typography
+*/
+
 // Global game variables
 let canvas;
 let score = 0;
