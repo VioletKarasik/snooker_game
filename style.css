@@ -1,0 +1,486 @@
+
+    :root {
+      --primary-color: #1f1f1f;
+      --secondary-color: #d4af7f;
+      --accent-color: #b24545;
+      --text-light: #f5f1e9;
+      --text-muted: #c7bfa6;
+      --panel-bg: rgba(31, 31, 31, 0.88);
+      --controls-bg: rgba(212, 175, 127, 0.15);
+      --welcome-bg: rgba(31, 31, 31, 0.96);
+      --shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+      --transition: all 0.3s ease-in-out;
+      --gold-gradient: linear-gradient(135deg, #d4af7f, #a67c3d);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: url(assets/background.avif) no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      color: var(--text-light);
+      overflow: hidden;
+      font-family: 'Marcellus SC', serif;
+    }
+
+    #game-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      height: 100%;
+      padding-top: 30px;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      box-shadow: var(--shadow);
+    }
+
+    .ui-panel {
+      position: absolute;
+      top: 30px;
+      color: var(--text-light);
+      padding: 20px 25px;
+      z-index: 100;
+      max-width: 280px;
+      backdrop-filter: blur(8px);
+      transition: var(--transition);
+      border-radius: 20px;
+    }
+
+    #info-panel {
+      left: 30px;
+      display: none; /* Скрыто до начала игры */
+    }
+
+    #controls-panel {
+      right: 30px;
+      background-color: var(--controls-bg);
+      transform: translateX(calc(100% + 30px));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #controls-panel.visible {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .panel-title {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 24px;
+      margin-bottom: -10px;
+      color: var(--secondary-color);
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+    }
+
+    #score-display {
+      font-size: 17px;
+    line-height: 1.7;
+    margin-bottom: 30px;
+    font-family: "Marcellus SC", serif;
+    letter-spacing: 0.5px;
+    color: var(--text-light);
+    }
+
+    #score-value {
+      color: var(--secondary-color);
+      font-weight: bold;
+      font-size: 24px;
+      text-shadow: 0 0 7px rgba(212, 175, 127, 0.8);
+    }
+
+    .ball-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .ball-item {
+      display: flex;
+      align-items: center;
+      width: calc(50% - 6px);
+      font-size: 15px;
+      font-family: "Marcellus SC", serif;
+      letter-spacing: 0.4px;
+      color: var(--text-light);
+    }
+
+    .ball-color {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      margin-right: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.7);
+    }
+
+    .controls-info {
+      margin-top: 15px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .controls-info p {
+      margin: 10px 0;
+      line-height: 1.5;
+      font-family: "Marcellus SC", serif;
+    }
+
+    #welcome-screen {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 25px 50px;
+      text-align: center;
+      z-index: 200;
+      width: 90%;
+      max-width: 600px;
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      color: var(--text-light);
+    }
+
+    #welcome-screen h1 {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 42px;
+      color: var(--secondary-color);
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.8);
+      margin-bottom: 25px;
+      letter-spacing: 2px;
+    }
+
+    #welcome-screen p {
+      font-size: 17px;
+      line-height: 1.7;
+      margin-bottom: 30px;
+      font-family: "Marcellus SC", serif;
+      letter-spacing: 0.5px;
+      color: var(--text-light);
+    }
+
+    p {
+      font-family: "Marcellus SC", serif;
+    }
+
+    .btn {
+  background: var(--gold-gradient);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  color: var(--primary-color);
+  padding: 14px 36px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.1), var(--shadow);
+  font-family: 'Cinzel Decorative', cursive;
+  border-radius: 999px; /* форма "пилюли" */
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.15), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.btn:hover::before {
+  opacity: 1;
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #a67c3d, #d4af7f);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(212, 175, 127, 0.4);
+  color: var(--text-light);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 15px rgba(212, 175, 127, 0.3);
+}
+
+.reset-btn-container {
+  position: absolute;
+  bottom: -165%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: none; /* скрыто до начала игры */
+}
+
+
+.reset-btn {
+  background: var(--gold-gradient);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  color: var(--primary-color);
+  padding: 8px 15px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.1), var(--shadow);
+  font-family: 'Cinzel Decorative', cursive;
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.reset-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.15), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.reset-btn:hover::before {
+  opacity: 1;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, #a67c3d, #d4af7f);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(212, 175, 127, 0.4);
+  color: var(--text-light);
+}
+
+.reset-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 15px rgba(212, 175, 127, 0.3);
+}
+    .toggle-controls {
+      position: absolute;
+      right: 30px;
+      bottom: 75px;
+      background: var(--gold-gradient);
+      color: var(--primary-color);
+      border: none;
+      width: 50px;
+      height: 50px;
+      font-size: 22px;
+      cursor: pointer;
+      z-index: 101;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel Decorative', cursive;
+      border-radius: 50%;
+    }
+
+    .toggle-controls:hover {
+      transform: scale(1.12);
+      color: var(--text-light);
+      box-shadow: 0 8px 20px rgba(180, 120, 60, 0.6);
+    }
+
+    @media (max-width: 768px) {
+      .ui-panel {
+        top: 15px;
+        padding: 15px;
+        max-width: 90%;
+      }
+      
+      #info-panel {
+        left: 15px;
+      }
+      
+      #controls-panel {
+        right: 15px;
+        max-width: 250px;
+      }
+      
+      #welcome-screen {
+        padding: 30px;
+      }
+      
+      #welcome-screen h1 {
+        font-size: 28px;
+      }
+      
+      .toggle-controls {
+        right: 15px;
+        bottom: 15px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+    }
+
+.two-player-btn {
+  background: var(--gold-gradient);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  color: var(--primary-color);
+  padding: 8px 15px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.1), var(--shadow);
+  font-family: 'Cinzel Decorative', cursive;
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  display: none;
+}
+.two-player-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.15), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.two-player-btn:hover::before {
+  opacity: 1;
+}
+
+.two-player-btn:hover {
+  background: linear-gradient(135deg, #a67c3d, #d4af7f);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(212, 175, 127, 0.4);
+  color: var(--text-light);
+}
+
+.two-player-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 15px rgba(212, 175, 127, 0.3);
+}
+    .toggle-controls {
+      position: absolute;
+      right: 30px;
+      bottom: 75px;
+      background: var(--gold-gradient);
+      color: var(--primary-color);
+      border: none;
+      width: 50px;
+      height: 50px;
+      font-size: 22px;
+      cursor: pointer;
+      z-index: 101;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel Decorative', cursive;
+      border-radius: 50%;
+    }
+
+    .toggle-controls:hover {
+      transform: scale(1.12);
+      color: var(--text-light);
+      box-shadow: 0 8px 20px rgba(180, 120, 60, 0.6);
+    }
+
+    @media (max-width: 768px) {
+      .ui-panel {
+        top: 15px;
+        padding: 15px;
+        max-width: 90%;
+      }
+      
+      #info-panel {
+        left: 15px;
+      }
+      
+      #controls-panel {
+        right: 15px;
+        max-width: 250px;
+      }
+      
+      #welcome-screen {
+        padding: 30px;
+      }
+      
+      #welcome-screen h1 {
+        font-size: 28px;
+      }
+      
+      .toggle-controls {
+        right: 15px;
+        bottom: 15px;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+    }
+
+.scoreboard {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 40px;
+  background-color: rgba(31, 31, 31, 0.85);
+  padding: 15px 30px;
+  border-radius: 12px;
+  z-index: 100;
+  color: var(--text-light);
+  backdrop-filter: blur(5px);
+  border: 1px solid var(--secondary-color);
+  box-shadow: var(--shadow);
+}
+
+.player {
+  text-align: center;
+  transition: 0.3s;
+  padding: 10px 20px;
+  border-radius: 10px;
+  min-width: 150px;
+}
+
+.player.active {
+  background-color: rgba(212, 175, 127, 0.2);
+  border: 2px solid var(--secondary-color);
+}
+
+.player h3 {
+  margin: 0 0 10px 0;
+  color: var(--secondary-color);
+  font-family: 'Cinzel Decorative', cursive;
+}
+
+.player p {
+  margin: 5px 0;
+  font-size: 16px;
+}

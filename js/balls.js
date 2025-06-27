@@ -455,7 +455,10 @@ function checkColoredBallsPotted() {
 let gameOver = false;
 
 function showWinMessage() {
-  gameOver = true; // включаем флаг завершения игры
+  if (!gameOver) { // Проигрываем звук только при первом вызове
+    gameOver = true;
+    playWinSound(); // Воспроизводим звук победы
+  }
 
   push();
   textAlign(CENTER, CENTER);

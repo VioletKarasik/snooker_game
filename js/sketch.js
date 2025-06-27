@@ -16,6 +16,11 @@ function setup() {
 
   setupPhysics();
   setupGame();
+  // Проверка аудио
+  console.log('Проверка аудиосистемы:');
+  console.log('- loadSound available:', typeof loadSound !== 'undefined');
+  console.log('- AudioContext:', typeof AudioContext !== 'undefined' ? 'supported' : 'not supported');
+  loadCueSounds(); // Добавьте эту строку
 }
 
 function setupGame() {
@@ -46,7 +51,29 @@ function draw() {
   }
 drawPenalty();
 }
+let gameStarted = false;
+    
+    function startGame() {
+      document.getElementById("welcome-screen").style.display = "none";
+      document.getElementById("info-panel").style.display = "block";
+      document.querySelector('.reset-btn-container').style.display = 'block';
+      document.querySelector('.two-player-btn').style.display = 'inline-block';
 
+      // Показываем кнопку управления
+      const toggleBtn = document.getElementById("toggleControls");
+      toggleBtn.style.display = "flex";
+      
+      gameStarted = true;
+      console.log("Game started!");
+    }
+
+    document.getElementById('toggleControls').addEventListener('click', function() {
+      const controlsPanel = document.getElementById('controls-panel');
+      if (controlsPanel) {
+        controlsPanel.classList.toggle('visible');
+        this.textContent = controlsPanel.classList.contains('visible') ? '✕' : '⚜';
+      }
+    });
 
 function updateScoreDisplay() {
   const scoreValueEl = document.getElementById("score-value");

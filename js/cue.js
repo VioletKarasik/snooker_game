@@ -17,7 +17,12 @@ let useKeyboardAim = false;
 let cueAngle = 0; // угол в радианах
 
 const offsetDistance = -15; // Расстояние смещения кий от шара (можно регулировать)
+// let cueHitSound = null;
 
+// // Функция для предзагрузки звука (должна вызываться в setup() или preload())
+// function loadCueSounds() {
+//   cueHitSound = loadSound('cue.mp3'); // или cue_hit.wav, cue_hit.ogg
+// }
 function drawCue() {
   if (!isNearTable(mouseX, mouseY)) {
     // Сбрасываем состояние прицеливания, если курсор ушел со стола
@@ -192,7 +197,94 @@ function mousePressed() {
   
   return true;
 }
-
+let cueHitSound = null;
+let soundReady = false;
+let soundAllowed = false;
+let winSound = null; // Добавляем рядом с другими переменными звуков
+function loadCueSounds() {
+  // Проверяем доступность p5.sound
+  if (typeof loadSound === 'undefined') {
+    console.error('p5.sound library not loaded!');
+    return;
+  }
+  
+  // Пробуем несколько возможных путей
+  const soundPaths = [
+    'assets/cue.mp3',
+    './assets/cue.mp3',
+    'sounds/cue.mp3',
+    './sounds/cue.mp3',
+    'cue.mp3'
+  ];
+  
+  // Пробуем загрузить по каждому пути
+  for (let path of soundPaths) {
+    try {
+      cueHitSound = loadSound(path, () => {
+        console.log('Звук успешно загружен по пути:', path);
+        soundReady = true;
+      }, (err) => {
+        console.log('Не удалось загрузить по пути:', path);
+      });
+      break; // Прерываем цикл при первой успешной загрузке
+    } catch (e) {
+      console.warn('Ошибка загрузки:', path, e);
+    }
+  }
+  
+  if (!cueHitSound) {
+    console.error('Не удалось загрузить звук ни по одному из путей');
+  }
+  winSound = loadSound('assets/endgame.mp3', () => {
+    console.log('Звук победы загружен');
+  }, (err) => {
+    console.error('Ошибка загрузки звука победы:', err);
+  });
+}
+function playWinSound() {
+  if (!winSound) {
+    console.warn('Звук победы не загружен');
+    return;
+  }
+  
+  try {
+    winSound.setVolume(0.7); // Громкость можно регулировать
+    winSound.rate(1.0); // Скорость воспроизведения
+    winSound.play();
+  } catch (err) {
+    console.error('Ошибка воспроизведения звука победы:', err);
+  }
+}
+// Новая функция для безопасного воспроизведения
+function playCueSound(volume = 0.5, rate = 0.7) {
+  if (!cueHitSound) {
+    console.warn('Звук не загружен');
+    return;
+  }
+  
+  // Добавляем задержку 2000 мс (2 секунды)
+  setTimeout(() => {
+    try {
+      // Разрешаем аудиоконтекст при первом воспроизведении
+      if (!soundAllowed) {
+        userStartAudio().then(() => {
+          soundAllowed = true;
+          cueHitSound.setVolume(volume);
+          cueHitSound.rate(rate);
+          cueHitSound.play();
+        }).catch(err => {
+          console.error('Ошибка разрешения аудио:', err);
+        });
+      } else {
+        cueHitSound.setVolume(volume);
+        cueHitSound.rate(rate);
+        cueHitSound.play();
+      }
+    } catch (err) {
+      console.error('Ошибка воспроизведения:', err);
+    }
+  }, 1000); // 2000 мс = 2 секунды
+}
 function mouseReleased() {
   // Проверяем, что курсор находится над столом
   if (!isNearTable(mouseX, mouseY)) {
@@ -216,29 +308,38 @@ function mouseReleased() {
   let distance = Math.sqrt(dx * dx + dy * dy);
   
   if (distance >= minPullDistance) {
-    dx /= distance;
-    dy /= distance;
+  dx /= distance;
+  dy /= distance;
 
-    let pullDistance = Math.min(distance, maxPullDistance);
-    strikePower = map(pullDistance, minPullDistance, maxPullDistance, 0, 1);
-    strikePower = constrain(strikePower, 0, 1);
+  let pullDistance = Math.min(distance, maxPullDistance);
+  strikePower = map(pullDistance, minPullDistance, maxPullDistance, 0, 1);
+  strikePower = constrain(strikePower, 0, 1);
 
-    strikeDir = { x: dx, y: dy };
-    const offset = offsetDistance;
+  strikeDir = { x: dx, y: dy };
+  const offset = offsetDistance;
 
-    strikeForcePos = {
-      x: pos.x + dx * ballRadius * 0.8 + (-dx) * offset,
-      y: pos.y + dy * ballRadius * 0.8 + (-dy) * offset
-    };
+  strikeForcePos = {
+    x: pos.x + dx * ballRadius * 0.8 + (-dx) * offset,
+    y: pos.y + dy * ballRadius * 0.8 + (-dy) * offset
+  };
 
-    strikeAnimationInProgress = true;
-    strikeAnimationProgress = 0;
-    strikePhase = 0; // начинаем с отката
+  strikeAnimationInProgress = true;
+  strikeAnimationProgress = 0;
+  strikePhase = 0; // начинаем с отката
 
-    // Сбрасываем таймер текущего игрока
-    resetCurrentPlayerTimer();
-  }
+  // Воспроизведение звука удара
+  // В mouseReleased():
+if (cueHitSound) {
+ playCueSound(strikePower * 0.7 + 0.3, strikePower * 0.5 + 0.8);
+}
 
+// В hitCueBallFromAngle():
+if (cueHitSound) {
+  playCueSound(0.8, 1.0);
+}
+
+  resetCurrentPlayerTimer();
+}
   return false;
 }
 
@@ -246,29 +347,35 @@ let showAimGuide = false;
 
 function hitCueBallFromAngle() {
   if (isTwoPlayerMode) {
-  timers[currentPlayer - 1] = 30;
-  document.getElementById(`timer${currentPlayer}`).textContent = '30';
-}
-   if (!cueBall || cueBall.body.speed>0.1) return;
+    timers[currentPlayer - 1] = 30;
+    document.getElementById(`timer${currentPlayer}`).textContent = '30';
+  }
+  if (!cueBall || cueBall.body.speed > 0.1) return;
 
-   const pos= cueBall.body.position;
-   const ballRadius= cueBall.diameter/2;
+  const pos = cueBall.body.position;
+  const ballRadius = cueBall.diameter / 2;
 
-   let dx= Math.cos(cueAngle);
-   let dy= Math.sin(cueAngle);
+  let dx = Math.cos(cueAngle);
+  let dy = Math.sin(cueAngle);
 
-   const baseForce=0.02; 
-   
-   // Точка приложения силы с учетом смещения
-   const forcePos={
-     x: pos.x + dx*(ballRadius*0.8)+(-dx)*offsetDistance,
-     y: pos.y + dy*(ballRadius*0.8)+(-dy)*offsetDistance
-   };
+  const baseForce = 0.02; 
+  
+  const forcePos = {
+    x: pos.x + dx * (ballRadius * 0.8) + (-dx) * offsetDistance,
+    y: pos.y + dy * (ballRadius * 0.8) + (-dy) * offsetDistance
+  };
 
-   const force={
-     x: -dx*baseForce,
-     y: -dy*baseForce
-   };
+  const force = {
+    x: -dx * baseForce,
+    y: -dy * baseForce
+  };
 
-   Matter.Body.applyForce(cueBall.body ,forcePos ,force );
+  Matter.Body.applyForce(cueBall.body, forcePos, force);
+
+  // Воспроизведение звука удара
+  if (cueHitSound) {
+    cueHitSound.setVolume(0.8); // фиксированная громкость для клавиатурного удара
+    cueHitSound.rate(1.0); // нормальная скорость
+    cueHitSound.play();
+  }
 }
