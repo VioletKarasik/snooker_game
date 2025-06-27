@@ -59,10 +59,16 @@ Implements official snooker rules with realistic physics and innovative gameplay
 
 2. **Ball Placement**
    ```javascript
-   function setupBalls(mode) {
-     // Mode-specific initialization
-   
-   }
+   function setupBalls(tableX, tableY, tableWidth, tableHeight) {
+    ballDiameter = tableWidth / 36;
+    clearAllBalls();
+
+    const rackX = tableX + tableWidth * 0.75;
+    const rackY = tableY + tableHeight / 2 - ((Math.sqrt(3) / 2) * ballDiameter * 2);
+    setupRedBalls(rackX, rackY);
+
+    setupColoredBalls(tableX, tableY, tableWidth, tableHeight);
+    }
    ```
 3. **Game Rules**
    - Score calculation
