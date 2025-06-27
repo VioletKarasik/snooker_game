@@ -1,7 +1,5 @@
 # Snooker Game - CM2030 Graphics Programming Project
 
-![Snooker Game Screenshot](screenshot.png) *Example screenshot of the game*
-
 ## Table of Contents
 - [Project Overview](#project-overview)
 - [Features](#features)
@@ -46,7 +44,7 @@ Implements official snooker rules with realistic physics and innovative gameplay
 ## Technical Implementation
 
 ### Code Structure
-| File | Purpose |
+| Action | Control |
 |------|---------|
 | `physics.js` | Matter.js engine setup |
 | `table.js` | Table rendering/physics |
@@ -63,4 +61,75 @@ Implements official snooker rules with realistic physics and innovative gameplay
    ```javascript
    function setupBalls(mode) {
      // Mode-specific initialization
+   
    }
+   ```
+3. **Game Rules**
+   - Score calculation
+   - Foul detection
+   - Turn management
+
+## How to Play
+
+### Basic Controls
+| File | Purpose |
+|------|---------|
+| `Aim` | 	Mouse movement |
+| `Shoot` | TClick-drag release |
+| `Reset shot` | `R` key |
+| `Toggle guide` | `K` key |
+| `Change mode` | `1`/`2`/`3` keys |
+
+### Game Rules
+- Pot red balls (1pt) followed by colors
+- Colors return to spots unless all reds are potted
+- Fouls give opponent advantage
+
+## Requirements Checklist
+
+### Mandatory Features
+- [x] Table with proper dimensions/ratio  
+- [x] Three ball setup modes  
+- [x] Physics for balls/cushions  
+- [x] Cue control system  
+- [x] Collision detection  
+- [x] Ball potting rules  
+
+### Advanced Requirements
+- [x] Two-player mode  
+- [x] Timed turns  
+- [x] Visual effects  
+- [x] Audio feedback  
+
+## Extensions
+
+### Innovative Features
+**Competitive Two-Player Mode**  
+✓ Score tracking  
+✓ Turn timer  
+✓ Player switching  
+
+**Enhanced Visuals**  
+✓ Dynamic lighting  
+✓ Wood grain textures  
+✓ Particle effects  
+
+**Audio System**  
+✓ Realistic sound effects  
+✓ Background ambiance  
+
+## Setup
+```bash
+git clone https://github.com/VioletKarasik/snooker_game.git
+```
+   - Open index.html in browser
+   - No additional dependencies required
+
+## Credits
+
+- **Physics Engine:** [Matter.js](https://brm.io/matter-js/)
+- **Graphics Library:** [p5.js](https://p5js.org/)
+- **Fonts:** [Google Fonts](https://fonts.google.com/)
+- **Sound Effects:** [Source Name or URL]
+
+*Developed as part of the CM2030 Graphics Programming module*
