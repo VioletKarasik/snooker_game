@@ -8,6 +8,7 @@ let penaltyTimer = 0;        // Timer for how long penalty is shown
 let gameOver = false;
 let allRedsCleared = false;
 const penaltyDuration = 60;  // Duration for showing penalty text (frames, 60 ≈ 1 second)
+let winMessageText = null;
 
 // Ball colors
 const COLORS = {
@@ -455,20 +456,27 @@ function checkColoredBallsPotted() {
   }
 }
 
-// Show win message is all balls are potted
+// Show win message when all balls are potted
 function showWinMessage() {
   if (!gameOver) { 
     gameOver = true;
     playWinSound(); 
-  }
 
-  push();
-  textAlign(CENTER, CENTER);
-  textSize(48);
-  textFont('Tahoma');
-  fill(0, 255, 0);
-  stroke(0);
-  strokeWeight(3);
-  text("Congratulations! You cleared the table!", width / 2, height / 2);
-  pop();
+    if (isTwoPlayerMode) {
+      let finalScore1 = scores[0] + (currentPlayer === 1 ? score : 0);
+      let finalScore2 = scores[1] + (currentPlayer === 2 ? score : 0);
+
+      if (finalScore1 > finalScore2) {
+        winMessageText = "Player 1 wins! 🏆";
+      } else if (finalScore2 > finalScore1) {
+        winMessageText = "Player 2 wins! 🎯";
+      } else {
+        winMessageText = "It's a tie! 🤝";
+      }
+
+      winMessageText += `\nFinal Score — P1: ${finalScore1} | P2: ${finalScore2}`;
+    } else {
+      winMessageText = "Congratulations! You cleared the table!";
+    }
+  }
 }

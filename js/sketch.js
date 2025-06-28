@@ -90,7 +90,17 @@ function draw() {
       addScoreForBall(balls[i].color);
     }
   }
-  
+  if (gameOver && winMessageText) {
+  push();
+  textAlign(CENTER, CENTER);
+  textSize(40);
+  textFont('Tahoma');
+  fill(0, 255, 0);
+  stroke(0);
+  strokeWeight(3);
+  text(winMessageText, width / 2, height / 2);
+  pop();
+}
   drawPenalty();
 }
     
@@ -203,6 +213,7 @@ function resetGame() {
   updateScoreDisplay();
   allRedsCleared = false;
   gameOver = false;
+  winMessageText = null;
   console.log("Game has been reset");
 }
 
