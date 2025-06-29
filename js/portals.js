@@ -5,7 +5,7 @@ let portalB = { x: 600, y: 380, r: 20 };
 let particles = [];
 let missedShots = 0;
 let portalsActive = true;
-
+let portals = [];
 function onPlayerShot(hitPocket) {
   if (!hitPocket) {
     missedShots++;
@@ -14,7 +14,7 @@ function onPlayerShot(hitPocket) {
     missedShots = 0; // сброс счетчика при попадании
   }
   
-  if (missedShots > 0 && missedShots % 3 === 0) {
+  if (hardModeEnabled && missedShots > 0 && missedShots % 3 === 0) {
     if (!ballsMoving()) {
       spawnPortalsRandomly();
       portalsActive = true;
@@ -40,12 +40,22 @@ function spawnPortalsRandomly() {
 
 function removePortals() {
   portalsActive = false;
+  portalA.x = -100;
+  portalA.y = -100;
+  portalB.x = -100;
+  portalB.y = -100;
+  particles = [];
 }
 
+
+
+
 function drawPortals() {
+  if (!portalsActive) return;
   drawFancyPortal(portalA.x, portalA.y, color(100, 100, 255), frameCount * 0.05);
   drawFancyPortal(portalB.x, portalB.y, color(200, 100, 255), -frameCount * 0.05);
 }
+
 
 function drawFancyPortal(x, y, baseColor, spinOffset = 0) {
   push();

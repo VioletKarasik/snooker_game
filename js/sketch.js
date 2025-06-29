@@ -48,6 +48,7 @@ let previousPlayerScore = 0; // To store the score before the stroke
 let isCheckingTurnEnd = false; // Flag to check for turn completion
 let lastHitTime = 0;
 const MIN_MOVEMENT_TIME = 900; // 3 seconds minimum movement time
+let hardModeEnabled = false;  // по умолчанию выключено
 
 function setup() {
   // Create canvas and set drawing modes
@@ -82,7 +83,10 @@ function draw() {
 
   // Render game elements
   drawTable();
-  drawPortals(); // Рисуем порталы раньше шаров, чтобы они были под шарами
+  if (hardModeEnabled && portalsActive) {
+  drawPortals();
+}
+
   drawBalls();
   drawCue();
 
@@ -94,22 +98,33 @@ function draw() {
   checkColoredBallsPotted();
   // Checking for end of move
   if (shouldCheckTurnEnd) {
-    const currentTime = Date.now();
-    const timeSinceHit = currentTime - lastHitTime;
-    
-    if (!ballsMoving() && timeSinceHit >= MIN_MOVEMENT_TIME) {
-      console.log("All balls stopped for sufficient time. Checking turn end...");
-      
-      if (wasStrokeMade && score === previousPlayerScore && isTwoPlayerMode) {
-        console.log("No points scored. Switching player...");
-        switchPlayer();
-      }
-      
-      shouldCheckTurnEnd = false;
-      wasStrokeMade = false;
-      previousPlayerScore = 0;
+  const currentTime = Date.now();
+  const timeSinceHit = currentTime - lastHitTime;
+
+  if (!ballsMoving() && timeSinceHit >= MIN_MOVEMENT_TIME) {
+    console.log("All balls stopped for sufficient time. Checking turn end...");
+
+    if (wasStrokeMade && score === previousPlayerScore && isTwoPlayerMode) {
+      console.log("No points scored. Switching player...");
+      switchPlayer();
+
+      // Промах - вызываем onPlayerShot с false
+      onPlayerShot(false);
+    } else if (wasStrokeMade && score > previousPlayerScore) {
+      // Забит шар - вызываем onPlayerShot с true
+      onPlayerShot(true);
+    } else if (wasStrokeMade && score === previousPlayerScore && !isTwoPlayerMode) {
+      // Одиночная игра, промах
+      onPlayerShot(false);
     }
+
+    shouldCheckTurnEnd = false;
+    wasStrokeMade = false;
+    previousPlayerScore = 0;
   }
+}
+
+
   // Check for balls in pockets
   for (let i = balls.length - 1; i >= 0; i--) {
   if (checkBallInPocket(balls[i])) {
@@ -246,6 +261,21 @@ function resetGame() {
   gameOver = false;
   winMessageText = null;
   console.log("Game has been reset");
+}
+
+function toggleHardMode() {
+  hardModeEnabled = !hardModeEnabled;
+  const btn = document.getElementById('hardModeBtn');
+  btn.textContent = hardModeEnabled ? 'Hard Mode ON' : 'Hard Mode OFF';
+
+  if (hardModeEnabled) {
+    // Включили хард-мод — сразу активируем и создаём порталы
+    spawnPortalsRandomly();
+    portalsActive = true;
+  } else {
+    // Выключаем хард-мод — убираем порталы
+    removePortals();
+  }
 }
 
 function startTwoPlayerGame() {
