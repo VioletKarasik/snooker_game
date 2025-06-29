@@ -82,9 +82,13 @@ function draw() {
 
   // Render game elements
   drawTable();
+  drawPortals(); // Рисуем порталы раньше шаров, чтобы они были под шарами
   drawBalls();
   drawCue();
-  
+
+  for (let ball of balls) {
+    checkPortal(ball.body);
+  }
   // Game logic checks
   checkCueBallPotted();
   checkColoredBallsPotted();
@@ -233,6 +237,9 @@ function resetGame() {
   setupTableBorders(tableX, tableY, tableWidth, tableHeight);
   setupCollisionDetection();
   
+  spawnPortalsRandomly();
+  portalsActive = true;
+  missedShots = 0;
   // Update UI
   updateScoreDisplay();
   allRedsCleared = false;
