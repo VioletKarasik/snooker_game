@@ -1,34 +1,37 @@
 /**
- * This project implements a complete snooker simulation using p5.js for graphics rendering and Matter.js for physics. 
- * My game faithfully recreates professional snooker with accurate table dimensions (maintaining the standard 12ft × 6ft ratio), 
- * realistic ball physics including proper friction and restitution values, and authentic gameplay rules.
+ * This project implements a complete snooker simulation using p5.js for graphics and Matter.js for physics.
+My game recreates professional snooker with realistic physics and rules. As an extension, I added a two-player mode with turn-taking and scoring, making the game truly competitive. I also introduced a unique 
+portal system in hard mode — after three missed shots, glowing portals appear and teleport balls across the table. This mechanic adds a creative twist and challenges players to adapt their strategies.
 
 Key technical achievements include:
-
-   - Three distinct ball setup modes (classic formation, random reds only, and random all balls)
-   - Hybrid mouse/keyboard control system for precise cue aiming and shooting
-   - Comprehensive physics implementation covering ball collisions, cushion bouncing, and pocket detection
-   - Rule-enforcement system handling ball potting, fouls, and scoring
-   - Advanced two-player mode with score tracking and turn timers
+   - Three distinct ball setup modes (classic formation - 1 key, random reds only - 2 key, random all balls - 3 key)
+   - Hybrid mouse/keyboard control: cue aiming (key R for reset) and shot power are controlled using mouse drag and keyboard
+   - Advanced physics simulation includes elastic ball-to-ball collisions, cushion bouncing with energy damping, and accurate pocket detection for potting
+   - Rule enforcement handles potting rules, fouls (e.g., cue ball), scoring logic, and player turns
+   - Dynamic two-player mode alternates turns, tracks scores and fouls, optional timers, and personalized win messages
+   - Hard Mode with portal mechanics: when activated, the game introduces a challenge mode where portals randomly spawn on the table after 3 consecutive missed shots, teleporting balls between two locations
 
 The implementation features:
+   - Visually detailed snooker table: Rendered with realistic textures, soft shadows, and wood grain for immersive presentation
+   - Portal effects with particles: Portals include animated visual effects, glowing outlines, spinning spirals, and orbiting particles for high-tech aesthetic
+   - Accurate ball rendering: Each ball is individually styled with authentic colors and dynamic shading
+   - Interactive line-of-sight preview: A toggleable guideline (key K) helps players visualize shot direction and predict collisions
+   - Responsive cue animation: Smooth cue movement reflects charging and striking actions in real time
 
-   - Visually detailed table with wood textures and dynamic lighting
-   - Accurate ball rendering with proper colors and markings
-   - Collision detection system identifying cue-ball impacts
-   - Audio feedback system for game events
+Audio & Feedback System:
+   - Audio feedback: Sounds are played when balls collide, enter pockets, or the cue strikes — enhancing realism
+   - Visual feedback: Real-time score updates, player turn indicators, and dynamic animations create a polished game experience
+   - Missed shot tracker: Tracks consecutive missed shots and triggers hard mode events like portal spawns for added difficulty
 
 Technical highlights:
+   - Modular architecture organized codebase with clear separation between physics engine, rendering, game logic, and user interaction modules
+   - Portal system: Custom logic for portal teleportation, with cooldown timers, positional offsets, and velocity adjustments to simulate smooth transitions
+   - Particle engine: Lightweight system for rendering particles around portals, including randomized lifespans, fading, and dynamic motion
+   - Hard mode toggle: Interactive button to enable or disable hard mode at runtime, with instant visual and gameplay response
+   - Robust collision detection covers ball-to-ball and ball-to-wall interactions ("cue-red", "cue-colour", "cue-cushion" in console)
 
-   - Modular code structure separating physics, table, balls, and cue logic
-   - Custom algorithms for ball placement and collision handling
-   - Responsive UI with animated elements and visual feedback
-
-Setup requires only cloning the repository and opening index.html in a browser, with no additional dependencies. 
-The project demonstrates mastery of graphics programming principles while extending the basic requirements with innovative 
-features like competitive multiplayer mode and enhanced visual effects.
-
-Developed using Matter.js physics engine, p5.js graphics library, and Google Fonts typography
+Unique Ideas for Further Development:
+   - AI Opponent: Implement a basic AI-controlled player capable of calculating optimal shots based on ball positions, enabling solo gameplay or practice mode with increasing difficulty levels
 */
 
 // Global game variables
