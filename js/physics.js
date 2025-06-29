@@ -6,12 +6,12 @@ let engine;
 let world;
 
 function setupPhysics() {
-  engine = Engine.create();
-  world = engine.world;
+    engine = Engine.create();
+    world = engine.world;
 
-  // Turn off gravity
-  engine.world.gravity.y = 0;
-  engine.world.gravity.x = 0;
+    // Turn off gravity
+    engine.world.gravity.y = 0;
+    engine.world.gravity.x = 0;
 
-  Engine.run(engine);
+    Engine.run(engine);
 }
