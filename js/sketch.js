@@ -4,7 +4,7 @@ My game recreates professional snooker with realistic physics and rules. As an e
 portal system in hard mode — after three missed shots, glowing portals appear and teleport balls across the table. This mechanic adds a creative twist and challenges players to adapt their strategies.
 
 Key technical achievements include:
-   - Three distinct ball setup modes (classic formation - 1 key, random reds only - 2 key, random all balls - 3 key)
+   - Three distinct ball setup modes (classic formation - 1 key, random reds only - 2, random all balls - 3)
    - Hybrid mouse/keyboard control: cue aiming (key R for reset) and shot power are controlled using mouse drag and keyboard
    - Advanced physics simulation includes elastic ball-to-ball collisions, cushion bouncing with energy damping, and accurate pocket detection for potting
    - Rule enforcement handles potting rules, fouls (e.g., cue ball), scoring logic, and player turns
@@ -17,10 +17,11 @@ The implementation features:
    - Accurate ball rendering: Each ball is individually styled with authentic colors and dynamic shading
    - Interactive line-of-sight preview: A toggleable guideline (key K) helps players visualize shot direction and predict collisions
    - Responsive cue animation: Smooth cue movement reflects charging and striking actions in real time
+   - Dynamic in-game message display: Real-time notifications for penalties, wins (table cleared), and invalid shots (e.g., two coloured balls potted consecutively) provide clear player feedback
 
 Audio & Feedback System:
-   - Audio feedback: Sounds are played when balls collide, enter pockets, or the cue strikes — enhancing realism
-   - Visual feedback: Real-time score updates, player turn indicators, and dynamic animations create a polished game experience
+   - Audio: Sounds are played when the cue strikes and player cleared the table — enhancing realism
+   - Visuals: Real-time score updates, player turn indicators, and dynamic animations create a polished game experience
    - Missed shot tracker: Tracks consecutive missed shots and triggers hard mode events like portal spawns for added difficulty
 
 Technical highlights:
@@ -31,7 +32,7 @@ Technical highlights:
    - Robust collision detection covers ball-to-ball and ball-to-wall interactions ("cue-red", "cue-colour", "cue-cushion" in console)
 
 Unique Ideas for Further Development:
-   - AI Opponent: Implement a basic AI-controlled player capable of calculating optimal shots based on ball positions, enabling solo gameplay or practice mode with increasing difficulty levels
+   - Implement a basic AI-controlled player capable of calculating optimal shots based on ball positions, enabling solo gameplay or practice mode with increasing difficulty levels
 */
 
 // Global game variables
@@ -134,6 +135,18 @@ function draw() {
             Matter.World.remove(engine.world, balls[i].body);
             balls.splice(i, 1);
             addScoreForBall(balls[i].color);
+        }
+    }
+    if (warningMessageTimer > 0) {
+        fill(255, 50, 50, 220);
+        stroke(200, 0, 0);
+        strokeWeight(3);
+        textSize(24);
+        textAlign(CENTER, CENTER);
+        text(warningMessageText, width / 2, height * 0.1);
+        warningMessageTimer--;
+        if (warningMessageTimer === 0) {
+            warningMessageText = "";
         }
     }
     if (gameOver && winMessageText) {

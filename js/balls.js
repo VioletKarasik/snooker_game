@@ -9,6 +9,10 @@ let gameOver = false;
 let allRedsCleared = false;
 const penaltyDuration = 60; // Duration for showing penalty text (frames, 60 ≈ 1 second)
 let winMessageText = null;
+let lastPottedType = null; // 'red' or 'colour'
+let consecutiveColourPottingWarningShown = false;
+let warningMessageText = "";
+let warningMessageTimer = 0;
 
 // Ball colors
 const COLORS = {
@@ -446,6 +450,21 @@ function checkColoredBallsPotted() {
             Matter.World.remove(engine.world, ball.body);
             balls = balls.filter(b => b !== ball);
 
+            // Check: two colored balls in a row
+            let ballType = (ball.color === COLORS.red) ? "red" : "colour";
+
+            if (ballType === "colour" && lastPottedType === "colour") {
+                if (!consecutiveColourPottingWarningShown) {
+                    showTwoColorsInPocketMessage();
+                    consecutiveColourPottingWarningShown = true;
+                }
+            } else {
+                consecutiveColourPottingWarningShown = false;
+            }
+
+            lastPottedType = ballType;
+
+            // === Начисление очков ===
             addScoreForBall(ball.color);
 
             if (ball.color === COLORS.red) {
@@ -474,6 +493,25 @@ function checkColoredBallsPotted() {
     }
 }
 
+function showTwoColorsInPocketMessage() {
+    const msg = "⚠️ Invalid shot: Two coloured balls potted in a row!";
+    const msgDiv = document.getElementById("message");
+
+    if (msgDiv) {
+        msgDiv.innerText = msg;
+        msgDiv.style.opacity = 1;
+        setTimeout(() => {
+            msgDiv.style.opacity = 0;
+        }, 3000);
+    }
+
+    console.warn(msg);
+
+    // Write to a global variable and enable a timer for display on canvas
+    warningMessageText = msg;
+    warningMessageTimer = 180; // show 180 frames (~3 seconds at 60 FPS)
+}
+
 // Show win message if all balls are collected
 function showWinMessage() {
     if (!gameOver) {
@@ -492,7 +530,7 @@ function showWinMessage() {
                 winMessageText = "It's a tie! 🤝";
             }
 
-            winMessageText += `\nFinal Score — P1: ${finalScore1} | P2: ${finalScore2}`;
+            winMessageText += `\nFinal Score - P1: ${finalScore1} | P2: ${finalScore2}`;
         } else {
             winMessageText = "Congratulations! You cleared the table!";
         }
