@@ -306,7 +306,11 @@ function mouseReleased() {
     if (cueHitSound) {
       playCueSound(strikePower * 0.7 + 0.3, strikePower * 0.5 + 0.8);
     }
-
+    console.log("Cue hit (mouse) at", Date.now());
+    wasStrokeMade = true;
+    previousPlayerScore = score;
+    shouldCheckTurnEnd = true;
+    lastHitTime = Date.now(); 
     resetCurrentPlayerTimer();
   }
 
@@ -348,4 +352,9 @@ function hitCueBallFromAngle() {
     cueHitSound.rate(1.0);
     cueHitSound.play();
   }
+  console.log("Cue hit (keyboard) at", Date.now());
+  wasStrokeMade = true;
+  previousPlayerScore = score;
+  shouldCheckTurnEnd = true;
+  lastHitTime = Date.now(); // Запоминаем время удара
 }

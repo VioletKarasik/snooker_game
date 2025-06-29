@@ -307,11 +307,23 @@ function drawBalls() {
 
 // Check if any ball is still moving
 function ballsMoving() {
+  const velocityThreshold = 0.1; // Немного увеличим порог
+  const angularThreshold = 0.02;
+  let anyMoving = false;
+  
   for (let ball of balls) {
     const v = ball.body.velocity;
-    if (Math.abs(v.x) > 0.1 || Math.abs(v.y) > 0.1) return true;
+    const av = ball.body.angularVelocity;
+    
+    if (Math.abs(v.x) > velocityThreshold || 
+        Math.abs(v.y) > velocityThreshold ||
+        Math.abs(av) > angularThreshold) {
+      anyMoving = true;
+      break;
+    }
   }
-  return false;
+  
+  return anyMoving;
 }
 
 // Reset all balls to original positions
@@ -456,7 +468,7 @@ function checkColoredBallsPotted() {
   }
 }
 
-// Show win message when all balls are potted
+// Show win message if all balls are collected
 function showWinMessage() {
   if (!gameOver) { 
     gameOver = true;

@@ -41,6 +41,13 @@ let scores = [0, 0];
 let timers = [30, 30];
 let timerInterval = null;
 let gameStarted = false;
+let ballsPottedThisTurn = 0; // Количество забитых шаров за текущий подход
+let wasStrokeMade = false; // Был ли сделан удар
+let shouldCheckTurnEnd = false; // Нужно ли проверять завершение подхода
+let previousPlayerScore = 0; // Для хранения счета перед ударом
+let isCheckingTurnEnd = false; // Флаг проверки завершения хода
+let lastHitTime = 0;
+const MIN_MOVEMENT_TIME = 900; // 3 секунды минимального времени движения
 
 function setup() {
   // Create canvas and set drawing modes
@@ -81,15 +88,33 @@ function draw() {
   // Game logic checks
   checkCueBallPotted();
   checkColoredBallsPotted();
+  // Check for turn end condition
+  if (shouldCheckTurnEnd) {
+    const currentTime = Date.now();
+    const timeSinceHit = currentTime - lastHitTime;
+    
+    if (!ballsMoving() && timeSinceHit >= MIN_MOVEMENT_TIME) {
+      console.log("All balls stopped for sufficient time. Checking turn end...");
+      
+      if (wasStrokeMade && score === previousPlayerScore && isTwoPlayerMode) {
+        console.log("No points scored. Switching player...");
+        switchPlayer();
+      }
+      
+      shouldCheckTurnEnd = false;
+      wasStrokeMade = false;
+      previousPlayerScore = 0;
+    }
+  }
 
   // Check for balls in pockets
   for (let i = balls.length - 1; i >= 0; i--) {
-    if (checkBallInPocket(balls[i])) {
-      Matter.World.remove(engine.world, balls[i].body);
-      balls.splice(i, 1);
-      addScoreForBall(balls[i].color);
-    }
+  if (checkBallInPocket(balls[i])) {
+    Matter.World.remove(engine.world, balls[i].body);
+    balls.splice(i, 1);
+    addScoreForBall(balls[i].color);
   }
+}
   if (gameOver && winMessageText) {
   push();
   textAlign(CENTER, CENTER);
@@ -260,23 +285,30 @@ function startTimer() {
 }
 
 function switchPlayer() {
-  // Handle player switch logic
+  if (ballsMoving()) {
+    console.error("Cannot switch player - balls are still moving!");
+    return;
+  }
+
+  console.log(`Switching from player ${currentPlayer} to ${currentPlayer === 1 ? 2 : 1}`);
   scores[currentPlayer - 1] += score;
   document.getElementById(`score${currentPlayer}`).textContent = scores[currentPlayer - 1];
   
-  // Reset current break score
   score = 0;
   document.getElementById(`current1`).textContent = 0;
   document.getElementById(`current2`).textContent = 0;
-  document.getElementById(`current${currentPlayer}`).textContent = score;
   
-  // Reset timer for previous player
   clearInterval(timerInterval);
   timers[currentPlayer - 1] = 30;
   document.getElementById(`timer${currentPlayer}`).textContent = '30';
 
-  // Switch to other player
   currentPlayer = currentPlayer === 1 ? 2 : 1;
+  
+  // Сбрасываем флаги
+  wasStrokeMade = false;
+  shouldCheckTurnEnd = false;
+  previousPlayerScore = 0;
+  
   updateActivePlayerUI();
   startTimer();
 }
