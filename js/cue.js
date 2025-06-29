@@ -18,6 +18,7 @@ let showAimGuide = false; // Whether to show the aiming guide
 let useKeyboardAim = false; // Whether aiming is controlled by keyboard
 let cueAngle = 0; // Angle of the cue in radians
 const offsetDistance = -15; // Distance to offset the cue from ball center
+let allowStrike = true;
 
 function drawCue() {
   if (!isNearTable(mouseX, mouseY)) {
@@ -27,9 +28,9 @@ function drawCue() {
     return;
   }
 
-  // Do not draw cue if ball is not present or no interaction is needed
-  if (!cueBall || (!isAiming && !useKeyboardAim && !strikeAnimationInProgress && !showAimGuide)) return;
-
+  // Don't draw cue if not allowed or no interaction needed
+  if (!cueBall || !allowStrike || (!isAiming && !useKeyboardAim && !strikeAnimationInProgress && !showAimGuide)) return;
+  
   const pos = cueBall.body.position;
   const ballRadius = cueBall.diameter / 2;
 
@@ -252,8 +253,8 @@ function mousePressed() {
     return false;
   }
 
-  // Begin aiming if game is active and cue ball is still
-  if (gameStarted && cueBall && cueBall.body.speed < 0.1) {
+  // Begin aiming only if allowed and cue ball is still
+  if (gameStarted && cueBall && allowStrike && cueBall.body.speed < 0.1) {
     isAiming = true;
     cueStartPos = { x: mouseX, y: mouseY };
     return false;
@@ -263,15 +264,15 @@ function mousePressed() {
 }
 
 function mouseReleased() {
-  // Cancel aiming if mouse is outside table
+   // Cancel aiming if mouse is outside table
   if (!isNearTable(mouseX, mouseY)) {
     isAiming = false;
     cueStartPos = null;
     return false;
   }
 
-  // Only proceed if we were aiming and the cue ball is still
-  if (!gameStarted || !isAiming || !cueBall || cueBall.body.speed > 0.1) return false;
+  // Only proceed if allowed, aiming and cue ball is still
+  if (!gameStarted || !isAiming || !cueBall || !allowStrike || cueBall.body.speed > 0.1) return false;
 
   showAimGuide = false;
   isAiming = false;
@@ -324,7 +325,7 @@ function hitCueBallFromAngle() {
     document.getElementById(`timer${currentPlayer}`).textContent = '30';
   }
 
-  if (!cueBall || cueBall.body.speed > 0.1) return;
+  if (!allowStrike || !cueBall || cueBall.body.speed > 0.1) return;
 
   const pos = cueBall.body.position;
   const ballRadius = cueBall.diameter / 2;
@@ -356,5 +357,5 @@ function hitCueBallFromAngle() {
   wasStrokeMade = true;
   previousPlayerScore = score;
   shouldCheckTurnEnd = true;
-  lastHitTime = Date.now(); // Запоминаем время удара
+  lastHitTime = Date.now();
 }

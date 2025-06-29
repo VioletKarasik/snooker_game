@@ -307,9 +307,8 @@ function drawBalls() {
 
 // Check if any ball is still moving
 function ballsMoving() {
-  const velocityThreshold = 0.1; // Немного увеличим порог
+  const velocityThreshold = 0.1;
   const angularThreshold = 0.02;
-  let anyMoving = false;
   
   for (let ball of balls) {
     const v = ball.body.velocity;
@@ -318,12 +317,13 @@ function ballsMoving() {
     if (Math.abs(v.x) > velocityThreshold || 
         Math.abs(v.y) > velocityThreshold ||
         Math.abs(av) > angularThreshold) {
-      anyMoving = true;
-      break;
+      allowStrike = false; 
+      return true;
     }
   }
   
-  return anyMoving;
+  allowStrike = true; 
+  return false;
 }
 
 // Reset all balls to original positions

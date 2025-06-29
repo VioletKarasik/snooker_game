@@ -41,13 +41,13 @@ let scores = [0, 0];
 let timers = [30, 30];
 let timerInterval = null;
 let gameStarted = false;
-let ballsPottedThisTurn = 0; // Количество забитых шаров за текущий подход
-let wasStrokeMade = false; // Был ли сделан удар
-let shouldCheckTurnEnd = false; // Нужно ли проверять завершение подхода
-let previousPlayerScore = 0; // Для хранения счета перед ударом
-let isCheckingTurnEnd = false; // Флаг проверки завершения хода
+let ballsPottedThisTurn = 0; // Number of balls potted in the current turn
+let wasStrokeMade = false; // Whether a stroke was made
+let shouldCheckTurnEnd = false; // Whether to check for turn completion
+let previousPlayerScore = 0; // To store the score before the stroke
+let isCheckingTurnEnd = false; // Flag to check for turn completion
 let lastHitTime = 0;
-const MIN_MOVEMENT_TIME = 900; // 3 секунды минимального времени движения
+const MIN_MOVEMENT_TIME = 900; // 3 seconds minimum movement time
 
 function setup() {
   // Create canvas and set drawing modes
@@ -88,7 +88,7 @@ function draw() {
   // Game logic checks
   checkCueBallPotted();
   checkColoredBallsPotted();
-  // Check for turn end condition
+  // Checking for end of move
   if (shouldCheckTurnEnd) {
     const currentTime = Date.now();
     const timeSinceHit = currentTime - lastHitTime;
@@ -106,7 +106,6 @@ function draw() {
       previousPlayerScore = 0;
     }
   }
-
   // Check for balls in pockets
   for (let i = balls.length - 1; i >= 0; i--) {
   if (checkBallInPocket(balls[i])) {
@@ -286,10 +285,9 @@ function startTimer() {
 
 function switchPlayer() {
   if (ballsMoving()) {
-    console.error("Cannot switch player - balls are still moving!");
+    console.log("Cannot switch player - balls are still moving");
     return;
   }
-
   console.log(`Switching from player ${currentPlayer} to ${currentPlayer === 1 ? 2 : 1}`);
   scores[currentPlayer - 1] += score;
   document.getElementById(`score${currentPlayer}`).textContent = scores[currentPlayer - 1];
@@ -304,7 +302,6 @@ function switchPlayer() {
 
   currentPlayer = currentPlayer === 1 ? 2 : 1;
   
-  // Сбрасываем флаги
   wasStrokeMade = false;
   shouldCheckTurnEnd = false;
   previousPlayerScore = 0;
